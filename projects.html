@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — LEAN structures</title>
+<meta name="description" content="A selection of structural engineering projects by LEAN structures, including private houses, heritage renovations, and feature structures.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .page-head {
+    padding: clamp(140px, 16vw, 200px) 0 clamp(40px, 6vw, 64px);
+  }
+  .page-head .eyebrow {
+    margin-bottom: 14px;
+  }
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(28px, 4vw, 48px) clamp(24px, 4vw, 40px);
+  }
+  @media (max-width: 700px) {
+    .projects-grid { grid-template-columns: 1fr; }
+  }
+  .placeholder-card {
+    border: 1px dashed rgba(42,27,16,0.3);
+    border-radius: 2px;
+    padding: clamp(24px, 4vw, 32px);
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--ink);
+    opacity: 0.55;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; padding:0;">
+    <a href="index.html" class="logo">LEAN structures</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="projects.html" aria-current="page">Projects</a>
+      <a href="articles.html">Articles</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Selected work</p>
+    <h1 style="font-size: clamp(32px, 5vw, 56px);">Projects</h1>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="projects-grid">
+
+      <a class="card" href="#">
+        <img class="card-image" src="images/project-placeholder.jpg" alt="Private house, London — exposed structural frame" loading="lazy">
+        <p class="card-title">Private house, London</p>
+        <p class="card-meta">Completed at MHA Structural Engineers</p>
+      </a>
+
+      <a class="card" href="#">
+        <img class="card-image" src="images/project-placeholder.jpg" alt="Private house, London — second view" loading="lazy">
+        <p class="card-title">Private house, London</p>
+        <p class="card-meta">Completed at MHA Structural Engineers</p>
+      </a>
+
+      <div class="placeholder-card">Next project — send photos and a short caption and I'll add it here</div>
+      <div class="placeholder-card">Next project — send photos and a short caption and I'll add it here</div>
+
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>&copy; LEAN structures</span>
+    <span><a href="https://www.instagram.com/lean_structures/" style="text-decoration:none;">Instagram</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
