@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Articles — LEAN structures</title>
+<meta name="description" content="Technical articles from LEAN structures on structural engineering, sustainable design, and building practice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .page-head {
+    padding: clamp(140px, 16vw, 200px) 0 clamp(40px, 6vw, 64px);
+  }
+  .page-head .eyebrow {
+    margin-bottom: 14px;
+  }
+  .article-list {
+    border-top: 1px solid rgba(42,27,16,0.15);
+  }
+  .article-row {
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    align-items: baseline;
+    gap: clamp(16px, 4vw, 32px);
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(42,27,16,0.15);
+    text-decoration: none;
+    color: inherit;
+  }
+  .article-row:hover .article-title {
+    color: var(--brand);
+  }
+  .article-date {
+    font-size: 14px;
+    opacity: 0.6;
+    font-family: var(--font-body);
+  }
+  .article-title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: clamp(18px, 2.4vw, 22px);
+    transition: color 0.15s ease;
+  }
+  .article-arrow {
+    font-size: 14px;
+    opacity: 0.5;
+  }
+  @media (max-width: 700px) {
+    .article-row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .article-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; padding:0;">
+    <a href="index.html" class="logo">LEAN structures</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="projects.html">Projects</a>
+      <a href="articles.html" aria-current="page">Articles</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Technical writing</p>
+    <h1 style="font-size: clamp(32px, 5vw, 56px);">Articles</h1>
+  </div>
+</section>
+
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="article-list">
+
+      <a class="article-row" href="articles/example-article.html">
+        <span class="article-date">Coming soon</span>
+        <span class="article-title">What LEAN design actually means in practice</span>
+        <span class="article-arrow">Read &rarr;</span>
+      </a>
+
+      <a class="article-row" href="articles/example-article.html">
+        <span class="article-date">Coming soon</span>
+        <span class="article-title">A short guide to embodied carbon in structural choices</span>
+        <span class="article-arrow">Read &rarr;</span>
+      </a>
+
+    </div>
+    <p style="margin-top:32px; font-size:14px; opacity:0.6; max-width:50ch;">Send over a draft or some notes for an article and I'll turn it into a page like the ones above, linked here automatically.</p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>&copy; LEAN structures</span>
+    <span><a href="https://www.instagram.com/lean_structures/" style="text-decoration:none;">Instagram</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
