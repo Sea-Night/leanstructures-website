@@ -1,0 +1,47 @@
+.articleList {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+}
+
+.articleRow {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  align-items: baseline;
+  gap: clamp(16px, 4vw, 32px);
+  padding: 28px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+  text-decoration: none;
+  color: inherit;
+}
+
+.articleRow:hover .articleTitle {
+  color: var(--brand);
+}
+
+.articleDate {
+  font-size: 14px;
+  opacity: 0.6;
+  font-family: var(--font-body);
+}
+
+.articleTitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(18px, 2.4vw, 22px);
+  transition: color 0.15s ease;
+  text-align: left;
+}
+
+.articleArrow {
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+@media (max-width: 700px) {
+  .articleRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .articleArrow {
+    display: none;
+  }
+}
