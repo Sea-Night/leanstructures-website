@@ -472,6 +472,23 @@ footer.site-footer .wrap {
   opacity: 0.75;
 }
 
+/* ---------------- Keyword cycle (used by components/KeywordCycle.tsx) ---------------- */
+
+.keyword-cycle {
+  display: block;
+  min-height: 1.15em;
+  line-height: 1.08;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: clamp(26px, 7vw, 88px);
+  text-transform: uppercase;
+}
+
+.keyword-cycle .kc-letter {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

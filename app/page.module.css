@@ -1,0 +1,183 @@
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 560px;
+  background: var(--bg-light);
+  overflow: hidden;
+}
+
+.heroCaption {
+  position: absolute;
+  bottom: 9%;
+  left: clamp(20px, 5vw, 64px);
+  right: clamp(20px, 5vw, 64px);
+  z-index: 2;
+}
+
+.heroCaption h1 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.heroCaption p {
+  font-family: var(--font-body);
+  font-size: clamp(15px, 1.6vw, 19px);
+  margin-top: 14px;
+  color: var(--brand);
+  max-width: 46ch;
+  text-align: left;
+}
+
+.intro {
+  position: relative;
+  padding-top: clamp(72px, 11vw, 140px);
+  padding-bottom: clamp(56px, 8vw, 96px);
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.introBgOversize {
+  position: absolute;
+  top: -15%;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  z-index: 0;
+  background-image: url('/images/westonbirt-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.introBgOversize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--accent-teal);
+  mix-blend-mode: multiply;
+}
+
+.intro .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.statement {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(26px, 3.6vw, 42px);
+  line-height: 1.25;
+  max-width: 18ch;
+  text-align: left;
+}
+
+.statement .accent {
+  color: var(--accent-rose);
+}
+
+.sub {
+  margin-top: 28px;
+  max-width: 58ch;
+  font-size: 18px;
+  opacity: 0.85;
+}
+
+.philosophy {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: clamp(32px, 6vw, 80px);
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .philosophy {
+    grid-template-columns: 1fr;
+  }
+}
+
+.philosophy p + p {
+  margin-top: 18px;
+}
+
+.featurePhoto {
+  padding: 0;
+}
+
+.featurePhotoFrame {
+  width: 100%;
+  height: 70vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.featurePhotoOversize {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 100%;
+  height: 120%;
+}
+
+.featurePhotoCaption {
+  padding: 18px clamp(20px, 5vw, 64px);
+  font-size: 14px;
+  color: color-mix(in srgb, var(--ink) 75%, var(--bg-light));
+  max-width: 60ch;
+}
+
+.highlightRose {
+  color: var(--accent-rose);
+  font-weight: 500;
+}
+
+.stat {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(56px, 9vw, 96px);
+  line-height: 1;
+  color: var(--accent-rose);
+}
+
+.statLabel {
+  margin-top: 10px;
+  font-size: 15px;
+  max-width: 28ch;
+  opacity: 0.8;
+}
+
+.contactBlock {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: clamp(32px, 6vw, 64px);
+}
+
+@media (max-width: 800px) {
+  .contactBlock {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contactDetail {
+  margin-top: 28px;
+  font-size: 17px;
+}
+
+.contactDetail a {
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+.contactDetail .row {
+  margin-bottom: 10px;
+}
+
+.areas {
+  font-size: 15px;
+  opacity: 0.75;
+  margin-top: 18px;
+}
