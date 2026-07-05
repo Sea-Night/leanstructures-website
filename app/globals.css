@@ -472,6 +472,16 @@ footer.site-footer .wrap {
   opacity: 0.75;
 }
 
+/* ---------------- Page head (projects / articles listing pages) ---------------- */
+
+.page-head {
+  padding: clamp(140px, 16vw, 200px) 0 clamp(40px, 6vw, 64px);
+}
+
+.page-head .eyebrow {
+  margin-bottom: 14px;
+}
+
 /* ---------------- Keyword cycle (used by components/KeywordCycle.tsx) ---------------- */
 
 .keyword-cycle {
