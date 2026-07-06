@@ -3,6 +3,7 @@
   align-items: stretch;
   gap: clamp(8px, 2vw, 20px);
   padding: 20px clamp(16px, 3vw, 40px) 12px;
+  width: 100%;
   max-width: 1600px;
   margin: 0 auto;
 }
