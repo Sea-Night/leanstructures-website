@@ -7,9 +7,41 @@ import { ParallaxLayer } from '@/components/ParallaxLayer';
 import { RevealOnScroll } from '@/components/RevealOnScroll';
 import styles from './page.module.css';
 
+const businessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'LEAN structures',
+  description:
+    'Structural engineering consultancy handling everyday domestic work — extensions, loft conversions, structural calculations, beam design, party wall matters — alongside specialist projects in structural timber, Passivhaus and AECB high-performance houses, natural and low-carbon materials, and heritage structures.',
+  url: 'https://leanstructures.co.uk',
+  email: 'info@leanstructures.co.uk',
+  telephone: '+441873903710',
+  areaServed: ['South East Wales', 'Monmouthshire', 'United Kingdom'],
+  address: {
+    '@type': 'PostalAddress',
+    addressRegion: 'Monmouthshire',
+    addressCountry: 'GB',
+  },
+  sameAs: ['https://www.instagram.com/lean_structures/'],
+  serviceType: [
+    'Domestic structural engineering',
+    'Extensions and loft conversions',
+    'Structural calculations and beam design',
+    'Party wall matters',
+    'Structural timber design',
+    'Passivhaus and AECB structural design',
+    'Natural and low-carbon materials',
+    'Heritage structural engineering',
+  ],
+};
+
 export default function Home() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
+      />
       <div className={styles.hero}>
         <Header variant="hero-nav" />
         <HeroTruss />
