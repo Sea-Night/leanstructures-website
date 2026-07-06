@@ -122,9 +122,33 @@ export function ExpandedProjectView({ item, onClose }: Props) {
             </AnimatePresence>
 
             {hasMultiple && (
-              <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
-                {imageIndex + 1} / {project.images.length}
-              </span>
+              <>
+                <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                  {imageIndex + 1} / {project.images.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cyclePrev();
+                  }}
+                  aria-label="Previous photo"
+                  className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/50"
+                >
+                  &#8592;
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    cycleNext();
+                  }}
+                  aria-label="Next photo"
+                  className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/50"
+                >
+                  &#8594;
+                </button>
+              </>
             )}
 
             <AnimatePresence>
@@ -135,7 +159,7 @@ export function ExpandedProjectView({ item, onClose }: Props) {
                   exit={{ opacity: 0, y: 24 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute inset-x-0 bottom-0 max-h-[75%] overflow-y-auto bg-brand/85 p-6 text-paper backdrop-blur-md md:p-8"
+                  className="absolute inset-x-0 bottom-0 max-h-[75%] overflow-y-auto bg-gradient-to-t from-brand/70 via-brand/45 to-brand/0 p-6 pt-16 text-paper backdrop-blur-[3px] md:p-8 md:pt-20"
                 >
                   <p className="text-xs uppercase tracking-[0.12em] opacity-70">
                     {project.status === 'coming-soon' ? 'Coming soon' : 'Selected work'}

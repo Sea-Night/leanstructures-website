@@ -6,6 +6,8 @@
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
+  flex: 1 1 0%;
+  min-height: 0;
 }
 
 .verticalLabel {
@@ -32,7 +34,10 @@
 }
 
 .gridWrap {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 0%;
   min-width: 0;
+  min-height: 0;
   width: 100%;
 }

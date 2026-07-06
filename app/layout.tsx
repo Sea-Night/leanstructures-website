@@ -51,7 +51,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${roboto.variable} ${fraunces.variable} ${ibmPlexMono.variable}`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-screen flex flex-col">{children}</body>
     </html>
   );
 }

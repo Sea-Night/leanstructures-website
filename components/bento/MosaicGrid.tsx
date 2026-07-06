@@ -12,7 +12,6 @@ import { GridArrows } from './GridArrows';
 const FLOOR_WIDTH = 320;
 const FLOOR_ROW_HEIGHT = 110;
 const GAP = 8;
-const STAGE_HEIGHT = 'clamp(360px, 62vh, 760px)';
 
 export function MosaicGrid({ projects }: { projects: Project[] }) {
   const { tiles, dims, next, prev, canPrev, pageNumber, poolSize } = useMosaicPage(projects);
@@ -45,7 +44,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
             : {
                 display: 'grid',
                 width: '100%',
-                height: STAGE_HEIGHT,
+                height: '100%',
                 gridTemplateColumns: `repeat(${dims.cols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${dims.rows}, minmax(0, 1fr))`,
                 gap: GAP,
@@ -58,6 +57,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
             tile={tile}
             dimmed={selectedKey !== null && selectedKey !== tile.item.key}
             priority={i < 3}
+            gridCols={dims.cols}
             onSelect={() => setSelectedKey(tile.item.key)}
           />
         ))}
@@ -66,7 +66,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
   );
 
   return (
-    <div>
+    <div className="flex flex-1 min-h-0 flex-col">
       {dims.isFloor ? (
         <div
           ref={scaleContainerRef}
@@ -88,7 +88,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
           </div>
         </div>
       ) : (
-        grid
+        <div className="min-h-0 flex-1">{grid}</div>
       )}
 
       <GridArrows onPrev={prev} onNext={next} canPrev={canPrev} />

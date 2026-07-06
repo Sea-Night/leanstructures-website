@@ -9,13 +9,24 @@ type Props = {
   tile: MosaicTileData;
   dimmed: boolean;
   priority?: boolean;
+  /** Total grid columns at the current breakpoint — needed to size `sizes`
+   * correctly, since a tile can span multiple columns (up to 4x wider than
+   * a naive per-breakpoint vw guess), which was causing next/image to
+   * serve an under-sized, blurry-looking image for large tiles. */
+  gridCols: number;
   onSelect: () => void;
 };
 
-export function MosaicTile({ tile, dimmed, priority, onSelect }: Props) {
+const MAX_CONTAINER_PX = 1600;
+
+export function MosaicTile({ tile, dimmed, priority, gridCols, onSelect }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const [hasEntered, setHasEntered] = useState(false);
   const { item } = tile;
+
+  const shareVw = Math.round((tile.w / gridCols) * 100);
+  const sharePx = Math.round((tile.w / gridCols) * MAX_CONTAINER_PX);
+  const sizes = `(min-width: ${MAX_CONTAINER_PX}px) ${sharePx}px, ${shareVw}vw`;
 
   return (
     <motion.button
@@ -47,7 +58,7 @@ export function MosaicTile({ tile, dimmed, priority, onSelect }: Props) {
         alt=""
         fill
         className="object-cover transition-[filter] duration-300 ease-out group-hover:blur-sm group-hover:brightness-[0.45] group-focus-visible:blur-sm group-focus-visible:brightness-[0.45]"
-        sizes="(min-width: 1536px) 14vw, (min-width: 1024px) 20vw, (min-width: 768px) 25vw, 50vw"
+        sizes={sizes}
         priority={priority}
       />
       <span
