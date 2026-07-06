@@ -12,6 +12,21 @@ type Props = {
 
 const SWIPE_THRESHOLD = 60;
 
+function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
+  const points = direction === 'left' ? '15 6 9 12 15 18' : '9 6 15 12 9 18';
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <polyline
+        points={points}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function ExpandedProjectView({ item, onClose }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const { project } = item;
@@ -88,7 +103,7 @@ export function ExpandedProjectView({ item, onClose }: Props) {
             layoutId={`mosaic-photo-${item.key}`}
             className="relative h-full w-full touch-pan-y select-none overflow-hidden bg-bg-mid"
             onPanEnd={handlePanEnd}
-            onTap={toggleNotes}
+            onClick={toggleNotes}
             role="button"
             tabIndex={0}
             aria-label={`${project.title}: ${currentImage.alt}. ${
@@ -110,14 +125,22 @@ export function ExpandedProjectView({ item, onClose }: Props) {
                 transition={{ duration: prefersReducedMotion ? 0 : 0.35 }}
                 className="absolute inset-0"
               >
-                <Image
-                  src={currentImage.src}
-                  alt={`${project.title}: ${currentImage.alt}`}
-                  fill
-                  className="object-cover"
-                  sizes="90vw"
-                  priority
-                />
+                {/* Ken Burns: slow zoom + downward drift while this photo is showing */}
+                <motion.div
+                  className="absolute inset-0"
+                  initial={prefersReducedMotion ? false : { scale: 1, y: '0%' }}
+                  animate={prefersReducedMotion ? undefined : { scale: 1.1, y: '3%' }}
+                  transition={{ duration: 9, ease: 'easeOut' }}
+                >
+                  <Image
+                    src={currentImage.src}
+                    alt={`${project.title}: ${currentImage.alt}`}
+                    fill
+                    className="object-cover"
+                    sizes="90vw"
+                    priority
+                  />
+                </motion.div>
               </motion.div>
             </AnimatePresence>
 
@@ -128,25 +151,27 @@ export function ExpandedProjectView({ item, onClose }: Props) {
                 </span>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     cyclePrev();
                   }}
                   aria-label="Previous photo"
-                  className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/50"
+                  className="absolute left-2 top-1/2 flex -translate-y-1/2 items-center justify-center text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-transform hover:scale-110"
                 >
-                  &#8592;
+                  <ChevronIcon direction="left" />
                 </button>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     cycleNext();
                   }}
                   aria-label="Next photo"
-                  className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/30 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/50"
+                  className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center text-white/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-transform hover:scale-110"
                 >
-                  &#8594;
+                  <ChevronIcon direction="right" />
                 </button>
               </>
             )}
@@ -159,7 +184,7 @@ export function ExpandedProjectView({ item, onClose }: Props) {
                   exit={{ opacity: 0, y: 24 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute inset-x-0 bottom-0 max-h-[75%] overflow-y-auto bg-gradient-to-t from-brand/70 via-brand/45 to-brand/0 p-6 pt-16 text-paper backdrop-blur-[3px] md:p-8 md:pt-20"
+                  className="absolute inset-x-0 bottom-0 max-h-[75%] overflow-y-auto bg-gradient-to-t from-brand/70 via-brand/45 to-brand/0 p-6 text-paper backdrop-blur-[3px] md:p-8"
                 >
                   <p className="text-xs uppercase tracking-[0.12em] opacity-70">
                     {project.status === 'coming-soon' ? 'Coming soon' : 'Selected work'}

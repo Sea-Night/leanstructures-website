@@ -38,7 +38,7 @@ export function MosaicTile({ tile, dimmed, priority, gridCols, onSelect }: Props
       animate={{ opacity: dimmed ? 0.15 : 1, scale: 1 }}
       onAnimationComplete={() => setHasEntered(true)}
       transition={{
-        duration: prefersReducedMotion ? 0 : 0.55,
+        duration: prefersReducedMotion ? 0 : 0.66,
         delay: !hasEntered && !prefersReducedMotion ? tile.revealDelay : 0,
       }}
       style={{
