@@ -12,21 +12,15 @@ import { GridArrows } from './GridArrows';
 const FLOOR_WIDTH = 320;
 const FLOOR_ROW_HEIGHT = 110;
 const GAP = 8;
+const STAGE_HEIGHT = 'clamp(360px, 62vh, 760px)';
 
 export function MosaicGrid({ projects }: { projects: Project[] }) {
   const { tiles, dims, next, prev, canPrev, pageNumber, poolSize } = useMosaicPage(projects);
   const scaleContainerRef = useRef<HTMLDivElement>(null);
   const scale = useFloorScale(scaleContainerRef, FLOOR_WIDTH);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [anchorSide, setAnchorSide] = useState<'left' | 'right'>('left');
 
   const selectedTile = tiles.find((t) => t.item.key === selectedKey) ?? null;
-
-  function handleSelect(tile: MosaicTileData) {
-    const tileCenterCol = tile.col + tile.w / 2;
-    setAnchorSide(tileCenterCol < dims.cols / 2 ? 'left' : 'right');
-    setSelectedKey(tile.item.key);
-  }
 
   if (poolSize === 0) {
     return <p style={{ opacity: 0.6, fontSize: 14 }}>Add project photos to see them here.</p>;
@@ -51,7 +45,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
             : {
                 display: 'grid',
                 width: '100%',
-                aspectRatio: `${dims.cols} / ${dims.rows}`,
+                height: STAGE_HEIGHT,
                 gridTemplateColumns: `repeat(${dims.cols}, 1fr)`,
                 gridTemplateRows: `repeat(${dims.rows}, 1fr)`,
                 gap: GAP,
@@ -64,7 +58,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
             tile={tile}
             dimmed={selectedKey !== null && selectedKey !== tile.item.key}
             priority={i < 3}
-            onSelect={() => handleSelect(tile)}
+            onSelect={() => setSelectedKey(tile.item.key)}
           />
         ))}
       </div>
@@ -105,12 +99,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
 
       <AnimatePresence>
         {selectedTile && (
-          <ExpandedProjectView
-            item={selectedTile.item}
-            anchorSide={anchorSide}
-            isFloor={dims.isFloor}
-            onClose={() => setSelectedKey(null)}
-          />
+          <ExpandedProjectView item={selectedTile.item} onClose={() => setSelectedKey(null)} />
         )}
       </AnimatePresence>
     </div>

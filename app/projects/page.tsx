@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MosaicGrid } from '@/components/bento/MosaicGrid';
 import { PROJECTS } from '@/lib/projects';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Projects — LEAN structures',
@@ -15,15 +16,13 @@ export default function ProjectsPage() {
     <>
       <Header />
 
-      <section className="page-head">
-        <div className="wrap">
-          <p className="eyebrow">Selected work</p>
-          <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)' }}>Projects</h1>
-        </div>
-      </section>
+      <h1 className="visually-hidden">Projects</h1>
 
-      <section style={{ paddingTop: 0 }}>
-        <div className="wrap">
+      <section className={styles.stage}>
+        <div className={styles.verticalLabel} aria-hidden="true">
+          Projects
+        </div>
+        <div className={styles.gridWrap}>
           <MosaicGrid projects={PROJECTS} />
         </div>
       </section>

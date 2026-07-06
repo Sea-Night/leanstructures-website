@@ -457,7 +457,7 @@ header.site-header nav a:focus-visible {
 /* ---------------- Footer ---------------- */
 
 footer.site-footer {
-  padding: 48px clamp(20px, 5vw, 64px) 56px;
+  padding: 18px clamp(20px, 5vw, 64px) 20px;
   border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
   background: var(--bg-light);
   position: relative;

@@ -2,17 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion, type PanInfo } from 'motion/react';
 import type { PoolItem } from '@/lib/bento-pool';
 
 type Props = {
   item: PoolItem;
-  anchorSide: 'left' | 'right';
-  isFloor: boolean;
   onClose: () => void;
 };
 
-export function ExpandedProjectView({ item, anchorSide, isFloor, onClose }: Props) {
+const SWIPE_THRESHOLD = 60;
+
+export function ExpandedProjectView({ item, onClose }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const { project } = item;
   const startIndex = Math.max(
@@ -20,110 +20,43 @@ export function ExpandedProjectView({ item, anchorSide, isFloor, onClose }: Prop
     project.images.findIndex((img) => img.src === item.image.src)
   );
   const [imageIndex, setImageIndex] = useState(startIndex);
+  const [notesOpen, setNotesOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const currentImage = project.images[imageIndex] ?? item.image;
+  const hasMultiple = project.images.length > 1;
 
   useEffect(() => {
     closeButtonRef.current?.focus();
   }, []);
 
+  function cycleNext() {
+    if (!hasMultiple) return;
+    setImageIndex((i) => (i + 1) % project.images.length);
+  }
+  function cyclePrev() {
+    if (!hasMultiple) return;
+    setImageIndex((i) => (i - 1 + project.images.length) % project.images.length);
+  }
+  function toggleNotes() {
+    setNotesOpen((v) => !v);
+  }
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowRight') cycleNext();
+      else if (e.key === 'ArrowLeft') cyclePrev();
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, project.images.length]);
 
-  function cycleImage() {
-    if (project.images.length <= 1) return;
-    setImageIndex((i) => (i + 1) % project.images.length);
+  function handlePanEnd(_event: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) {
+    if (info.offset.x <= -SWIPE_THRESHOLD) cycleNext();
+    else if (info.offset.x >= SWIPE_THRESHOLD) cyclePrev();
   }
-
-  const photoFirst = isFloor ? true : anchorSide === 'left';
-  const gridStyle = isFloor
-    ? { gridTemplateRows: '2fr 1fr', gridTemplateColumns: '1fr' }
-    : anchorSide === 'left'
-      ? { gridTemplateColumns: '2fr 1fr' }
-      : { gridTemplateColumns: '1fr 2fr' };
-
-  const photoPane = (
-    <motion.div
-      layoutId={`mosaic-photo-${item.key}`}
-      className="relative h-full w-full cursor-pointer overflow-hidden bg-bg-mid"
-      style={{ order: isFloor ? 1 : photoFirst ? 1 : 2 }}
-      onClick={cycleImage}
-      role="button"
-      tabIndex={0}
-      aria-label={
-        project.images.length > 1
-          ? 'Show next photo'
-          : `${project.title}: ${currentImage.alt}`
-      }
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          cycleImage();
-        }
-      }}
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentImage.src}
-          initial={prefersReducedMotion ? false : { opacity: 0, filter: 'blur(14px)' }}
-          animate={{ opacity: 1, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, filter: 'blur(14px)' }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.35 }}
-          className="absolute inset-0"
-        >
-          <Image
-            src={currentImage.src}
-            alt={`${project.title}: ${currentImage.alt}`}
-            fill
-            className="object-cover"
-            sizes="(min-width: 768px) 60vw, 100vw"
-            priority
-          />
-        </motion.div>
-      </AnimatePresence>
-      {project.images.length > 1 && (
-        <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
-          {imageIndex + 1} / {project.images.length}
-        </span>
-      )}
-    </motion.div>
-  );
-
-  const textPane = (
-    <div
-      style={{ order: isFloor ? 2 : photoFirst ? 2 : 1 }}
-      className="relative flex h-full w-full flex-col justify-center overflow-y-auto bg-brand p-6 text-paper md:p-8"
-    >
-      <p className="text-xs uppercase tracking-[0.12em] opacity-70">
-        {project.status === 'coming-soon' ? 'Coming soon' : 'Selected work'}
-      </p>
-      <h3 className="font-display mt-2 text-xl font-semibold md:text-2xl">{project.title}</h3>
-      <p className="mt-1 text-sm opacity-80">{project.meta}</p>
-      {project.externalLink && (
-        <a
-          href={project.externalLink.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex w-fit border-b border-paper/50 text-sm font-medium"
-        >
-          {project.externalLink.label} &#8599;
-        </a>
-      )}
-      {project.structuralNotes && (
-        <div className="mt-4 space-y-3 text-sm leading-relaxed opacity-90">
-          {project.structuralNotes.split('\n\n').map((para) => (
-            <p key={para.slice(0, 40)}>{para}</p>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <>
@@ -149,11 +82,89 @@ export function ExpandedProjectView({ item, anchorSide, isFloor, onClose }: Prop
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
           onClick={(e) => e.stopPropagation()}
-          className="grid h-full max-h-[80vh] w-full max-w-6xl overflow-hidden rounded-sm shadow-2xl"
-          style={gridStyle}
+          className="relative h-full max-h-[82vh] w-full max-w-4xl overflow-hidden rounded-sm shadow-2xl"
         >
-          {photoPane}
-          {textPane}
+          <motion.div
+            layoutId={`mosaic-photo-${item.key}`}
+            className="relative h-full w-full touch-pan-y select-none overflow-hidden bg-bg-mid"
+            onPanEnd={handlePanEnd}
+            onTap={toggleNotes}
+            role="button"
+            tabIndex={0}
+            aria-label={`${project.title}: ${currentImage.alt}. ${
+              hasMultiple ? 'Swipe or use arrow keys for more photos. ' : ''
+            }Press Enter to ${notesOpen ? 'hide' : 'show'} project notes.`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleNotes();
+              }
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImage.src}
+                initial={prefersReducedMotion ? false : { opacity: 0, filter: 'blur(14px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, filter: 'blur(14px)' }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.35 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={currentImage.src}
+                  alt={`${project.title}: ${currentImage.alt}`}
+                  fill
+                  className="object-cover"
+                  sizes="90vw"
+                  priority
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {hasMultiple && (
+              <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+                {imageIndex + 1} / {project.images.length}
+              </span>
+            )}
+
+            <AnimatePresence>
+              {notesOpen && (
+                <motion.div
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 24 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute inset-x-0 bottom-0 max-h-[75%] overflow-y-auto bg-brand/85 p-6 text-paper backdrop-blur-md md:p-8"
+                >
+                  <p className="text-xs uppercase tracking-[0.12em] opacity-70">
+                    {project.status === 'coming-soon' ? 'Coming soon' : 'Selected work'}
+                  </p>
+                  <h3 className="font-display mt-2 text-xl font-semibold md:text-2xl">
+                    {project.title}
+                  </h3>
+                  <p className="mt-1 text-sm opacity-80">{project.meta}</p>
+                  {project.externalLink && (
+                    <a
+                      href={project.externalLink.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex w-fit border-b border-paper/50 text-sm font-medium"
+                    >
+                      {project.externalLink.label} &#8599;
+                    </a>
+                  )}
+                  {project.structuralNotes && (
+                    <div className="mt-4 space-y-3 text-sm leading-relaxed opacity-90">
+                      {project.structuralNotes.split('\n\n').map((para) => (
+                        <p key={para.slice(0, 40)}>{para}</p>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </motion.div>
         <button
           ref={closeButtonRef}

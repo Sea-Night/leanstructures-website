@@ -25,7 +25,7 @@ function assignRevealDelays(tiles: TileRect[], rng: () => number): MosaicTile['r
     [order[i], order[j]] = [order[j], order[i]];
   }
   const delays = new Array<number>(tiles.length);
-  const STEP = 0.05;
+  const STEP = 0.11;
   order.forEach((tileIndex, revealPosition) => {
     delays[tileIndex] = revealPosition * STEP;
   });
