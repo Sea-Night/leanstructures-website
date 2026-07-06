@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion, type PanInfo } from 'motion/react';
 import type { PoolItem } from '@/lib/bento-pool';
+import { ArchitectLink } from '@/components/ArchitectLink';
 
 type Props = {
   item: PoolItem;
@@ -40,6 +41,21 @@ export function ExpandedProjectView({ item, onClose }: Props) {
 
   const currentImage = project.images[imageIndex] ?? item.image;
   const hasMultiple = project.images.length > 1;
+
+  const metaContent = project.architect ? (
+    (() => {
+      const [before, after] = project.meta.split('{architect}');
+      return (
+        <>
+          {before}
+          <ArchitectLink name={project.architect.name} url={project.architect.url} />
+          {after}
+        </>
+      );
+    })()
+  ) : (
+    project.meta
+  );
 
   useEffect(() => {
     closeButtonRef.current?.focus();
@@ -192,7 +208,7 @@ export function ExpandedProjectView({ item, onClose }: Props) {
                   <h3 className="font-display mt-2 text-xl font-semibold md:text-2xl">
                     {project.title}
                   </h3>
-                  <p className="mt-1 text-sm opacity-80">{project.meta}</p>
+                  <p className="mt-1 text-sm opacity-80">{metaContent}</p>
                   {project.externalLink && (
                     <a
                       href={project.externalLink.href}

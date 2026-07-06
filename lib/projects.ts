@@ -20,10 +20,16 @@ export type ProjectImage = {
   caption?: string;
 };
 
+export type ArchitectRef = { name: string; url: string };
+
 export type Project = {
   slug: string;
   title: string;
+  /** Plain text. If crediting an architect, include the literal token
+   * `{architect}` where their name should appear — ExpandedProjectView
+   * splices in the styled, linked `architect` field for you. */
   meta: string;
+  architect?: ArchitectRef;
   size: BentoSize;
   status?: 'live' | 'coming-soon';
   externalLink?: { href: string; label: string };
@@ -36,7 +42,8 @@ export const PROJECTS: Project[] = [
   {
     slug: 'westonbirt-playscape',
     title: 'Silk Wood Playscape, Westonbirt Arboretum',
-    meta: 'Structural design for PEARCE+ & Forestry England',
+    meta: 'Structural design for {architect} & Forestry England',
+    architect: { name: 'PEARCE+', url: 'https://pearce-plus.com/' },
     size: 'large',
     status: 'live',
     externalLink: {
