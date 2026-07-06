@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { BentoGrid } from '@/components/bento/BentoGrid';
+import { MosaicGrid } from '@/components/bento/MosaicGrid';
 import { PROJECTS } from '@/lib/projects';
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function ProjectsPage() {
 
       <section style={{ paddingTop: 0 }}>
         <div className="wrap">
-          <BentoGrid projects={PROJECTS} />
+          <MosaicGrid projects={PROJECTS} />
         </div>
       </section>
 
