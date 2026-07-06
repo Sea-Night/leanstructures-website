@@ -31,4 +31,7 @@ Follow the "just add one entry to an array" pattern the original static site use
 
 ## Deployment
 
-Target: **Vercel** (free tier). The user is retiring an old Wix site; DNS/domain cutover from Wix is a **separate, explicitly-confirmed-later step** — never touch DNS or the live Wix site without direct sign-off in the moment.
+- GitHub: https://github.com/Sea-Night/leanstructures-website (main branch, force-pushed over old static-site upload/delete history on 2026-07-06 with user confirmation).
+- Vercel project: `cknight-8080s-projects/leanstructures-site`, deployed via `npx vercel` (CLI login, not git-connected yet — the auto-link to GitHub failed with "add a Login Connection to your GitHub account first"; connecting GitHub in Vercel account settings would enable auto-deploy-on-push, currently a manual `vercel`/`vercel --prod` redeploy is needed instead).
+- Live preview: https://leanstructures-site.vercel.app
+- The user is retiring an old Wix site; DNS/domain cutover from Wix to this Vercel deployment is a **separate, explicitly-confirmed-later step** — never touch DNS or the live Wix site without direct sign-off in the moment.
