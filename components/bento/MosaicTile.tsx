@@ -34,8 +34,12 @@ export function MosaicTile({ tile, dimmed, priority, onSelect }: Props) {
         gridRow: `${tile.row + 1} / span ${tile.h}`,
         gridColumn: `${tile.col + 1} / span ${tile.w}`,
         pointerEvents: dimmed ? 'none' : 'auto',
+        width: '100%',
+        height: '100%',
+        minWidth: 0,
+        minHeight: 0,
       }}
-      className="group relative block overflow-hidden rounded-sm bg-bg-mid text-left"
+      className="group relative block w-full h-full min-w-0 min-h-0 overflow-hidden rounded-sm bg-bg-mid text-left"
       aria-label={`${item.project.title}: ${item.image.alt}`}
     >
       <Image

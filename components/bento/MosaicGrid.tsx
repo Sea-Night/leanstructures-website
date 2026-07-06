@@ -36,7 +36,7 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
             ? {
                 display: 'grid',
                 width: FLOOR_WIDTH,
-                gridTemplateColumns: `repeat(${dims.cols}, 1fr)`,
+                gridTemplateColumns: `repeat(${dims.cols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${dims.rows}, ${FLOOR_ROW_HEIGHT}px)`,
                 gap: GAP,
                 transform: `scale(${scale})`,
@@ -46,8 +46,8 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
                 display: 'grid',
                 width: '100%',
                 height: STAGE_HEIGHT,
-                gridTemplateColumns: `repeat(${dims.cols}, 1fr)`,
-                gridTemplateRows: `repeat(${dims.rows}, 1fr)`,
+                gridTemplateColumns: `repeat(${dims.cols}, minmax(0, 1fr))`,
+                gridTemplateRows: `repeat(${dims.rows}, minmax(0, 1fr))`,
                 gap: GAP,
               }
         }
