@@ -4,18 +4,22 @@ import { useState } from 'react';
 import { LayoutGroup, AnimatePresence } from 'motion/react';
 import type { Project } from '@/lib/projects';
 import { useMosaicPage, type MosaicTile as MosaicTileData } from './use-mosaic-page';
+import { useIsMobile } from '@/components/use-is-mobile';
 import { MosaicTile } from './MosaicTile';
 import { ExpandedProjectView } from './ExpandedProjectView';
 import { GridArrows } from './GridArrows';
 
-// Below the grid's floor breakpoint (2 cols, growing rows), tiles render at
-// this fixed comfortable height and the grid simply gets taller — the page
-// scrolls to show it all, rather than shrinking tiles to fit one screen.
-const FLOOR_ROW_HEIGHT = 140;
+// On mobile (any tier, not just the floor), tiles render at this fixed
+// comfortable height and the grid simply gets taller — the page scrolls
+// to show it all. On mobile the ancestor chain (PageSwipeNav/PageTransition/
+// .stage) is natural-height, not viewport-filling, so a percentage-height
+// grid would have nothing definite to resolve against and collapse.
+const MOBILE_ROW_HEIGHT = 140;
 const GAP = 8;
 
 export function MosaicGrid({ projects }: { projects: Project[] }) {
   const { tiles, dims, next, prev, canPrev, pageNumber, poolSize } = useMosaicPage(projects);
+  const { isMobile } = useIsMobile();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const selectedTile = tiles.find((t) => t.item.key === selectedKey) ?? null;
@@ -30,12 +34,12 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
         role="group"
         aria-label={`Project photos, page ${pageNumber}`}
         style={
-          dims.isFloor
+          isMobile
             ? {
                 display: 'grid',
                 width: '100%',
                 gridTemplateColumns: `repeat(${dims.cols}, minmax(0, 1fr))`,
-                gridTemplateRows: `repeat(${dims.rows}, ${FLOOR_ROW_HEIGHT}px)`,
+                gridTemplateRows: `repeat(${dims.rows}, ${MOBILE_ROW_HEIGHT}px)`,
                 gap: GAP,
               }
             : {
@@ -64,8 +68,8 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
 
   return (
     <div className="flex flex-col md:flex-1 md:min-h-0">
-      {dims.isFloor ? (
-        <div style={{ width: '100%', height: dims.rows * FLOOR_ROW_HEIGHT + (dims.rows - 1) * GAP }}>
+      {isMobile ? (
+        <div style={{ width: '100%', height: dims.rows * MOBILE_ROW_HEIGHT + (dims.rows - 1) * GAP }}>
           {grid}
         </div>
       ) : (

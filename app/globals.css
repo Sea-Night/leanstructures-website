@@ -322,8 +322,8 @@ header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
 
 .mobile-nav-dot-slot {
   position: absolute;
-  top: -4px;
-  left: -4px;
+  left: 50vw;
+  top: 32px;
   pointer-events: none;
 }
 
