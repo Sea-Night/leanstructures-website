@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MosaicGrid } from '@/components/bento/MosaicGrid';
 import { PROJECTS } from '@/lib/projects';
@@ -14,8 +13,6 @@ export const metadata: Metadata = {
 export default function ProjectsPage() {
   return (
     <>
-      <Header />
-
       <h1 className="visually-hidden">Projects</h1>
 
       <section className={styles.stage}>

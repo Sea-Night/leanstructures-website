@@ -7,35 +7,47 @@ import {
   motion,
   useMotionValue,
   useTransform,
-  animate,
+  useAnimationFrame,
   useReducedMotion,
   type MotionValue,
 } from 'motion/react';
-import { NAV_PAGES, navIndexForPathname, shortestCyclicDelta, type NavPage } from '@/lib/site-nav';
+import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
-const HALF_PI = Math.PI / 2;
+const TAU = 0.5; // decay time constant, s — how long the pulse takes to fade out
+const OMEGA = 12; // rad/s — spin rate of the sweep while the pulse is alive
+const SWING = 12; // px — max sweep along each dot's spoke, kept within the banner's height
+const VELOCITY_TO_KICK = 0.002;
+const DEFAULT_KICK = 1.1; // a tap has no swipe velocity, so give it a gentle default pulse
+const MAX_KICK = 1.6; // caps how far even a very fast swipe can push the swing
 
-// Small, centered cluster (~15% of a mobile screen's width) near the top.
-const CENTER_X_VW = 50;
-const CENTER_Y_PX = 32;
-const BASE_RADIUS = 26; // px — each dot's resting distance from center
-const SWING = 14; // px — how far each dot breathes in/out along its own line
-const BASE_ROTATION = -Math.PI / 4; // dots sit at NE/SE/SW/NW
+// Fixed rest anchors — a shallow arc across the top of the banner. Every
+// dot always returns here exactly; the motion below is a purely
+// decorative pulse layered on top, never a permanent displacement.
+const REST_X_VW = [35, 45, 55, 65];
+const REST_Y_PX = [22, 14, 14, 22];
 
-// Swipe velocity (px/s) -> initial angular velocity (rad/s) for the spring.
-const VELOCITY_TO_ANGULAR = 0.006;
+// Each dot's Cardan-circle spoke direction (a 2:1 hypocycloid — a small
+// circle rolling inside one twice its radius — degenerates to a straight
+// line through the center; see Tusi couple / Cardano's circles). Fanned
+// 45 degrees apart, centered on straight up, so each dot only ever moves
+// back and forth along this one fixed line.
+const ALPHA = [
+  -Math.PI * (7 / 8),
+  -Math.PI * (5 / 8),
+  -Math.PI * (3 / 8),
+  -Math.PI * (1 / 8),
+];
 
-/** Mobile-only replacement for the header's logo/nav: 4 dots that
- * reproduce the "circular motion illusion" — each dot only ever moves
- * back and forth along its own fixed straight line through a shared
- * center point (never orbits), but because all 4 share one animated
- * phase, the ensemble reads as a single point circling the center. A
- * swipe or dot tap advances that shared phase by a quarter turn per
- * page, using a spring (seeded with the swipe's actual velocity) so the
- * motion keeps spiraling and gradually decays to rest rather than
- * snapping to a fixed stop. Rendered as a position:fixed overlay mounted
- * in app/layout.tsx (outside PageTransition's animated wrapper — that
+/** Mobile-only replacement for the header's logo/nav: 4 dots on a fixed
+ * arc across the top of the banner. Every swipe or tap triggers a
+ * decaying spiral pulse — each dot sweeps out and back along its own
+ * straight spoke (a genuine Cardan-circle/hypocycloid path), timed so
+ * the ensemble reads as a single point orbiting the arc — then always
+ * settles back exactly where it started. The pulse's initial strength
+ * comes from the swipe's real velocity; a plain tap gets a gentle
+ * default. Rendered as a position:fixed overlay mounted in
+ * app/layout.tsx (outside PageTransition's animated wrapper — that
  * wrapper applies a CSS transform mid-slide, which would otherwise
  * re-anchor any fixed-position descendant to itself instead of the
  * viewport). */
@@ -43,34 +55,54 @@ export function MobileNavDots() {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
   const activeIndex = navIndexForPathname(pathname);
-  const prevIndexRef = useRef(activeIndex);
-  const theta = useMotionValue(0);
+  const prevPathnameRef = useRef(pathname);
+
+  const elapsed = useMotionValue(0); // seconds since the current/last pulse began
+  const kick = useMotionValue(0); // this pulse's initial strength (V0)
+  const navStartRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const delta = shortestCyclicDelta(prevIndexRef.current, activeIndex);
-    prevIndexRef.current = activeIndex;
-    const target = theta.get() + delta * HALF_PI;
+    if (pathname === prevPathnameRef.current) return;
+    prevPathnameRef.current = pathname;
 
     if (prefersReducedMotion) {
-      theta.set(target);
+      kick.set(0);
+      navStartRef.current = null;
       return;
     }
 
     const swipeVelocity = consumeLastSwipeVelocity();
-    animate(theta, target, {
-      type: 'spring',
-      velocity: -swipeVelocity * VELOCITY_TO_ANGULAR,
-      stiffness: 30,
-      damping: 4,
-    });
+    const v0 =
+      swipeVelocity !== 0 ? Math.min(Math.abs(swipeVelocity) * VELOCITY_TO_KICK, MAX_KICK) : DEFAULT_KICK;
+    kick.set(v0);
+    navStartRef.current = performance.now();
+    elapsed.set(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex]);
+  }, [pathname]);
+
+  useAnimationFrame(() => {
+    if (navStartRef.current === null) return;
+    const t = (performance.now() - navStartRef.current) / 1000;
+    if (t > TAU * 6) {
+      navStartRef.current = null;
+      elapsed.set(0);
+      return;
+    }
+    elapsed.set(t);
+  });
 
   return (
     <nav aria-label="Page navigation" className="mobile-nav-dots">
       <ul>
         {NAV_PAGES.map((page, i) => (
-          <DotLink key={page.href} page={page} index={i} isActive={i === activeIndex} theta={theta} />
+          <DotLink
+            key={page.href}
+            page={page}
+            index={i}
+            isActive={i === activeIndex}
+            elapsed={elapsed}
+            kick={kick}
+          />
         ))}
       </ul>
     </nav>
@@ -81,26 +113,31 @@ function DotLink({
   page,
   index,
   isActive,
-  theta,
+  elapsed,
+  kick,
 }: {
   page: NavPage;
   index: number;
   isActive: boolean;
-  theta: MotionValue<number>;
+  elapsed: MotionValue<number>;
+  kick: MotionValue<number>;
 }) {
-  const alpha = index * HALF_PI + BASE_ROTATION;
+  const alpha = ALPHA[index];
 
-  const x = useTransform(theta, (t) => {
-    const r = BASE_RADIUS + SWING * Math.cos(t - alpha);
-    return r * Math.cos(alpha) - 4;
+  const x = useTransform([elapsed, kick], (latest) => {
+    const [t, v0] = latest as [number, number];
+    return sweepOffset(t, v0, alpha) * Math.cos(alpha) - 4;
   });
-  const y = useTransform(theta, (t) => {
-    const r = BASE_RADIUS + SWING * Math.cos(t - alpha);
-    return r * Math.sin(alpha) - 4;
+  const y = useTransform([elapsed, kick], (latest) => {
+    const [t, v0] = latest as [number, number];
+    return sweepOffset(t, v0, alpha) * Math.sin(alpha) - 4;
   });
 
   return (
-    <li className="mobile-nav-dot-slot">
+    <li
+      className="mobile-nav-dot-slot"
+      style={{ left: `${REST_X_VW[index]}vw`, top: REST_Y_PX[index] }}
+    >
       <motion.div style={{ x, y }}>
         <Link
           href={page.href}
@@ -111,4 +148,16 @@ function DotLink({
       </motion.div>
     </li>
   );
+}
+
+/** Displacement along a dot's spoke at time t: an envelope that starts
+ * and ends at exactly 0 (peak normalized to v0 at t=TAU) multiplied by a
+ * fixed-frequency oscillation — the "spiral in, settle at the start"
+ * shape, with per-dot phase (via alpha) creating the illusion that a
+ * single point is orbiting the arc rather than 4 dots each just
+ * wobbling in place. */
+function sweepOffset(t: number, v0: number, alpha: number) {
+  if (v0 === 0 || t <= 0) return 0;
+  const envelope = v0 * (t / TAU) * Math.exp(1 - t / TAU);
+  return envelope * SWING * Math.cos(OMEGA * t - alpha);
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RevealOnScroll } from '@/components/RevealOnScroll';
 import styles from './page.module.css';
@@ -13,8 +12,6 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <>
-      <Header />
-
       <section className="tint" id="contact" style={{ paddingTop: 'clamp(140px, 16vw, 200px)' }}>
         <div className={`wrap ${styles.contactBlock}`}>
           <RevealOnScroll>

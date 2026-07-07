@@ -3,16 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-type HeaderProps = {
-  /** Pass "hero-nav" on the homepage so the header floats transparently over the hero. */
-  variant?: 'default' | 'hero-nav';
-};
-
-export function Header({ variant = 'default' }: HeaderProps) {
+/** Rendered once in app/layout.tsx (outside the per-page transitioning
+ * tree) so it never remounts on navigation — it derives everything it
+ * needs (the transparent hero-nav styling, aria-current) from the route
+ * itself rather than being re-supplied by each page. */
+export function Header() {
   const pathname = usePathname();
+  const isHome = pathname === '/';
 
   return (
-    <header className={`site-header${variant === 'hero-nav' ? ' hero-nav' : ''}`}>
+    <header className={`site-header${isHome ? ' hero-nav' : ''}`}>
       <Link href="/" className="logo">
         <span className="logo-lean">LEAN</span>
         <span className="logo-structures">structures</span>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Roboto, Fraunces, IBM_Plex_Mono } from 'next/font/google';
+import { Header } from '@/components/Header';
 import { PageSwipeNav } from '@/components/PageSwipeNav';
 import { PageTransition } from '@/components/PageTransition';
 import { MobileNavDots } from '@/components/MobileNavDots';
@@ -55,6 +56,7 @@ export default function RootLayout({
       className={`${roboto.variable} ${fraunces.variable} ${ibmPlexMono.variable}`}
     >
       <body className="min-h-screen flex flex-col">
+        <Header />
         <PageSwipeNav>
           <MobileNavDots />
           <PageTransition>{children}</PageTransition>

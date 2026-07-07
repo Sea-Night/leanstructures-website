@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { RevealOnScroll } from '@/components/RevealOnScroll';
 import { ARTICLES } from '@/lib/articles';
@@ -14,8 +13,6 @@ export const metadata: Metadata = {
 export default function ArticlesPage() {
   return (
     <>
-      <Header />
-
       <section className="page-head">
         <div className="wrap">
           <p className="eyebrow">Technical writing</p>

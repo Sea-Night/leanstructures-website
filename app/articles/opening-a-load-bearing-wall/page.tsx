@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { WallOpeningDiagram, type WallOpeningNote } from '@/components/articles/WallOpeningDiagram';
 
@@ -329,8 +328,6 @@ export default function OpeningALoadBearingWallPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-
-      <Header />
 
       <main>
         <section className="hero">

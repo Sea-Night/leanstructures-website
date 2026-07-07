@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
@@ -10,8 +9,6 @@ export const metadata: Metadata = {
 export default function ExampleArticlePage() {
   return (
     <>
-      <Header />
-
       <section className="article-head">
         <div className="wrap">
           <Link className="back-link" href="/articles">

@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { HeroTruss } from '@/components/HeroTruss';
 import { KeywordCycle } from '@/components/KeywordCycle';
@@ -43,7 +42,6 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
       />
       <div className={styles.hero}>
-        <Header variant="hero-nav" />
         <HeroTruss />
         <div className={styles.heroCaption}>
           <KeywordCycle />
