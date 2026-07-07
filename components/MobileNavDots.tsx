@@ -15,8 +15,7 @@ import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const TAU = 0.5; // decay time constant, s — how long the pulse takes to fade out
-const OMEGA = 14; // rad/s — how fast each dot oscillates along its (rotating) spoke
-const ROT_RATE = OMEGA / 2; // rad/s — the whole spoke pattern also rotates, at half the oscillation rate (matching the fx/fy source's own 2:1 ratio between its "2 phase" and "theta" terms) — this is what makes it read as a spinning wheel rather than 4 dots wobbling on fixed lines
+const SPIN_RATE = 6; // rad/s — rate the whole spoke pattern rotates at; the oscillation along each spoke runs at exactly 2x this (see sweepOffset), matching the fx/fy source's own theta vs. 2*phase ratio
 const SWING = 36; // px — max sweep along each dot's spoke; needs real travel distance for the phase offsets between dots to read as rotation rather than a jitter
 const VELOCITY_TO_KICK = 0.002;
 const DEFAULT_KICK = 1.1; // a tap has no swipe velocity, so give it a gentle default pulse
@@ -32,7 +31,7 @@ const REST_Y_PX = [22, 14, 14, 22];
 // circle rolling inside one twice its radius — degenerates to a straight
 // line through the center; see Tusi couple / Cardano's circles). Fanned
 // 45 degrees apart at rest; during a pulse the whole fan rotates together
-// (see ROT_RATE) while each dot also oscillates along its own line.
+// (see SPIN_RATE) while each dot also oscillates along its own line.
 const ALPHA = [
   -Math.PI * (7 / 8),
   -Math.PI * (5 / 8),
@@ -151,19 +150,24 @@ function DotLink({
   );
 }
 
-/** A dot's (x, y) offset from its rest anchor at time t. The spoke
- * direction itself rotates (spokeAngle), while the dot also oscillates
- * back and forth along that rotating line (r) — the same combination
- * used in the reference fx/fy hypocycloid animation, where the "2*phase"
- * term (here, the oscillation) advances twice as fast as the "theta"
- * term (here, the spoke's own rotation). An envelope that starts and
- * ends at exactly 0 (peak normalized to v0 at t=TAU) guarantees every
- * dot always settles back to its exact rest position regardless of how
- * far the spoke pattern has rotated. */
+/** A dot's (x, y) offset from its rest anchor at time t, following the
+ * reference fx/fy hypocycloid exactly: the spoke direction rotates at
+ * SPIN_RATE (using the dot's static alpha as its fixed offset within
+ * the rotating frame), while the magnitude along that spoke oscillates
+ * at exactly 2x SPIN_RATE — also phased by the same static alpha, not
+ * by the rotating spoke angle itself. Getting that "same static alpha
+ * in both terms" right is what makes it a clean pinwheel rather than a
+ * jittery mess: feeding the already-rotating angle back into the
+ * oscillation term (an earlier version of this) silently adds an extra
+ * frequency component on top, which reads as chaotic rather than
+ * spinning. An envelope that starts and ends at exactly 0 (peak
+ * normalized to v0 at t=TAU) guarantees every dot always settles back
+ * to its exact rest position regardless of how far the pattern has
+ * spun. */
 function sweepOffset(t: number, v0: number, alpha: number) {
   if (v0 === 0 || t <= 0) return { x: 0, y: 0 };
   const envelope = v0 * (t / TAU) * Math.exp(1 - t / TAU);
-  const spokeAngle = alpha - ROT_RATE * t;
-  const r = envelope * SWING * Math.cos(OMEGA * t - spokeAngle);
+  const spokeAngle = alpha - SPIN_RATE * t;
+  const r = envelope * SWING * Math.cos(2 * SPIN_RATE * t - alpha);
   return { x: r * Math.cos(spokeAngle), y: r * Math.sin(spokeAngle) };
 }
