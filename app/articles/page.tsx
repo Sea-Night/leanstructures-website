@@ -43,7 +43,9 @@ export default function ArticlesPage() {
         </div>
       </section>
 
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </>
   );
 }

@@ -29,6 +29,20 @@
   text-align: left;
 }
 
+@media (max-width: 767px) {
+  .hero {
+    height: auto;
+    aspect-ratio: 1600 / 800;
+    min-height: 220px;
+  }
+
+  .heroCaption {
+    bottom: 5%;
+    left: 20px;
+    right: 20px;
+  }
+}
+
 .intro {
   position: relative;
   padding-top: clamp(72px, 11vw, 140px);

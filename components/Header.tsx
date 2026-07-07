@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MobileNavDots } from '@/components/MobileNavDots';
 
 type HeaderProps = {
   /** Pass "hero-nav" on the homepage so the header floats transparently over the hero. */
@@ -32,7 +31,6 @@ export function Header({ variant = 'default' }: HeaderProps) {
           Contact
         </Link>
       </nav>
-      <MobileNavDots />
     </header>
   );
 }

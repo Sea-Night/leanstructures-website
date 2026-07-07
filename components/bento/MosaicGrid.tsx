@@ -1,22 +1,21 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { LayoutGroup, AnimatePresence } from 'motion/react';
 import type { Project } from '@/lib/projects';
 import { useMosaicPage, type MosaicTile as MosaicTileData } from './use-mosaic-page';
-import { useFloorScale } from './use-floor-scale';
 import { MosaicTile } from './MosaicTile';
 import { ExpandedProjectView } from './ExpandedProjectView';
 import { GridArrows } from './GridArrows';
 
-const FLOOR_WIDTH = 320;
-const FLOOR_ROW_HEIGHT = 110;
+// Below the grid's floor breakpoint (2 cols, growing rows), tiles render at
+// this fixed comfortable height and the grid simply gets taller — the page
+// scrolls to show it all, rather than shrinking tiles to fit one screen.
+const FLOOR_ROW_HEIGHT = 140;
 const GAP = 8;
 
 export function MosaicGrid({ projects }: { projects: Project[] }) {
   const { tiles, dims, next, prev, canPrev, pageNumber, poolSize } = useMosaicPage(projects);
-  const scaleContainerRef = useRef<HTMLDivElement>(null);
-  const scale = useFloorScale(scaleContainerRef, FLOOR_WIDTH);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const selectedTile = tiles.find((t) => t.item.key === selectedKey) ?? null;
@@ -34,12 +33,10 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
           dims.isFloor
             ? {
                 display: 'grid',
-                width: FLOOR_WIDTH,
+                width: '100%',
                 gridTemplateColumns: `repeat(${dims.cols}, minmax(0, 1fr))`,
                 gridTemplateRows: `repeat(${dims.rows}, ${FLOOR_ROW_HEIGHT}px)`,
                 gap: GAP,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
               }
             : {
                 display: 'grid',
@@ -66,26 +63,10 @@ export function MosaicGrid({ projects }: { projects: Project[] }) {
   );
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col">
+    <div className="flex flex-col md:flex-1 md:min-h-0">
       {dims.isFloor ? (
-        <div
-          ref={scaleContainerRef}
-          style={{
-            width: '100%',
-            height: dims.rows * FLOOR_ROW_HEIGHT + (dims.rows - 1) * GAP,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: FLOOR_WIDTH * scale,
-              height: (dims.rows * FLOOR_ROW_HEIGHT + (dims.rows - 1) * GAP) * scale,
-              margin: '0 auto',
-              overflow: 'hidden',
-            }}
-          >
-            {grid}
-          </div>
+        <div style={{ width: '100%', height: dims.rows * FLOOR_ROW_HEIGHT + (dims.rows - 1) * GAP }}>
+          {grid}
         </div>
       ) : (
         <div className="min-h-0 flex-1">{grid}</div>

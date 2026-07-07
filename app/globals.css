@@ -305,21 +305,26 @@ header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
   outline-offset: 4px;
 }
 
-/* ---------------- Mobile nav dots (replaces logo/nav below 768px) ---------------- */
+/* ---------------- Mobile nav dots (replaces text nav below 768px; logo
+   stays but shrinks) — rendered outside header.site-header (mounted in
+   app/layout.tsx as a fixed viewport overlay, not a header descendant),
+   so these selectors are unscoped from `header.site-header`. ---------------- */
 
-header.site-header nav.mobile-nav-dots {
+.mobile-nav-dots {
   display: none;
-  width: 100%;
-  justify-content: center;
 }
 
 .mobile-nav-dots ul {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  list-style: none;
   margin: 0;
   padding: 0;
+  list-style: none;
+}
+
+.mobile-nav-dot-slot {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  pointer-events: none;
 }
 
 .mobile-nav-dot {
@@ -331,6 +336,7 @@ header.site-header nav.mobile-nav-dots {
   transition:
     background 0.2s ease,
     transform 0.2s ease;
+  pointer-events: auto;
 }
 
 .mobile-nav-dot[aria-current='page'] {
@@ -344,12 +350,22 @@ header.site-header nav.mobile-nav-dots {
 }
 
 @media (max-width: 767px) {
-  header.site-header .logo,
   header.site-header nav:not(.mobile-nav-dots) {
     display: none;
   }
-  header.site-header nav.mobile-nav-dots {
-    display: flex;
+  header.site-header .logo-lean {
+    font-size: 20px;
+  }
+  header.site-header .logo-structures {
+    font-size: 9px;
+    margin-top: 2px;
+  }
+  .mobile-nav-dots {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
   }
 }
 

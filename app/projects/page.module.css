@@ -6,8 +6,15 @@
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  flex: 1 1 0%;
-  min-height: 0;
+  flex: none;
+  min-height: auto;
+}
+
+@media (min-width: 768px) {
+  .stage {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
 }
 
 .verticalLabel {

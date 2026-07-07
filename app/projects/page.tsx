@@ -27,7 +27,9 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </>
   );
 }

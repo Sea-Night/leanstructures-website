@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Roboto, Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import { PageSwipeNav } from '@/components/PageSwipeNav';
 import { PageTransition } from '@/components/PageTransition';
+import { MobileNavDots } from '@/components/MobileNavDots';
 import './globals.css';
 
 const roboto = Roboto({
@@ -55,6 +56,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col">
         <PageSwipeNav>
+          <MobileNavDots />
           <PageTransition>{children}</PageTransition>
         </PageSwipeNav>
       </body>

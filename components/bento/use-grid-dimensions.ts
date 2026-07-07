@@ -12,7 +12,10 @@ const TIERS: { query: string; rows: number; cols: number }[] = [
   { query: '(min-width: 640px)', rows: 3, cols: 3 },
   { query: '(min-width: 400px)', rows: 3, cols: 2 },
 ];
-const FLOOR = { rows: 3, cols: 1 };
+// Below 400px (most phones in portrait): stop trading columns for width and
+// instead grow rows to use the length of a scrollable mobile page, at full
+// tile size — never fewer than 2 cols x 3 rows.
+const FLOOR = { rows: 6, cols: 2 };
 
 /** SSR-safe: `ready` stays false until the first client-side measurement,
  * so callers can defer randomized layout work until then and avoid a

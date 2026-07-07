@@ -36,17 +36,20 @@ export function PageSwipeNav({ children }: { children: ReactNode }) {
     if (Math.abs(info.offset.x) < SWIPE_THRESHOLD) return;
 
     const idx = navIndexForPathname(pathname);
-    if (info.offset.x < 0 && idx < NAV_PAGES.length - 1) {
-      navigatingRef.current = true;
-      router.push(NAV_PAGES[idx + 1].href);
-    } else if (info.offset.x > 0 && idx > 0) {
-      navigatingRef.current = true;
-      router.push(NAV_PAGES[idx - 1].href);
+    const len = NAV_PAGES.length;
+    navigatingRef.current = true;
+    if (info.offset.x < 0) {
+      router.push(NAV_PAGES[(idx + 1) % len].href);
+    } else {
+      router.push(NAV_PAGES[(idx - 1 + len) % len].href);
     }
   }
 
   return (
-    <motion.div className="flex flex-1 min-h-0 flex-col touch-pan-y" onPanEnd={handlePanEnd}>
+    <motion.div
+      className="flex flex-col touch-pan-y md:flex-1 md:min-h-0"
+      onPanEnd={handlePanEnd}
+    >
       {children}
     </motion.div>
   );
