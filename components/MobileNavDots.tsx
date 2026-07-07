@@ -15,8 +15,8 @@ import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const TAU = 0.5; // decay time constant, s — how long the pulse takes to fade out
-const OMEGA = 12; // rad/s — spin rate of the sweep while the pulse is alive
-const SWING = 12; // px — max sweep along each dot's spoke, kept within the banner's height
+const OMEGA = 14; // rad/s — spin rate of the sweep while the pulse is alive
+const SWING = 36; // px — max sweep along each dot's spoke; needs real travel distance for the phase offsets between dots to read as rotation rather than a jitter
 const VELOCITY_TO_KICK = 0.002;
 const DEFAULT_KICK = 1.1; // a tap has no swipe velocity, so give it a gentle default pulse
 const MAX_KICK = 1.6; // caps how far even a very fast swipe can push the swing
