@@ -15,7 +15,8 @@ import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const TAU = 0.5; // decay time constant, s — how long the pulse takes to fade out
-const OMEGA = 14; // rad/s — spin rate of the sweep while the pulse is alive
+const OMEGA = 14; // rad/s — how fast each dot oscillates along its (rotating) spoke
+const ROT_RATE = OMEGA / 2; // rad/s — the whole spoke pattern also rotates, at half the oscillation rate (matching the fx/fy source's own 2:1 ratio between its "2 phase" and "theta" terms) — this is what makes it read as a spinning wheel rather than 4 dots wobbling on fixed lines
 const SWING = 36; // px — max sweep along each dot's spoke; needs real travel distance for the phase offsets between dots to read as rotation rather than a jitter
 const VELOCITY_TO_KICK = 0.002;
 const DEFAULT_KICK = 1.1; // a tap has no swipe velocity, so give it a gentle default pulse
@@ -27,11 +28,11 @@ const MAX_KICK = 1.6; // caps how far even a very fast swipe can push the swing
 const REST_X_VW = [35, 45, 55, 65];
 const REST_Y_PX = [22, 14, 14, 22];
 
-// Each dot's Cardan-circle spoke direction (a 2:1 hypocycloid — a small
+// Each dot's Cardan-circle spoke offset (a 2:1 hypocycloid — a small
 // circle rolling inside one twice its radius — degenerates to a straight
 // line through the center; see Tusi couple / Cardano's circles). Fanned
-// 45 degrees apart, centered on straight up, so each dot only ever moves
-// back and forth along this one fixed line.
+// 45 degrees apart at rest; during a pulse the whole fan rotates together
+// (see ROT_RATE) while each dot also oscillates along its own line.
 const ALPHA = [
   -Math.PI * (7 / 8),
   -Math.PI * (5 / 8),
@@ -126,11 +127,11 @@ function DotLink({
 
   const x = useTransform([elapsed, kick], (latest) => {
     const [t, v0] = latest as [number, number];
-    return sweepOffset(t, v0, alpha) * Math.cos(alpha) - 4;
+    return sweepOffset(t, v0, alpha).x - 4;
   });
   const y = useTransform([elapsed, kick], (latest) => {
     const [t, v0] = latest as [number, number];
-    return sweepOffset(t, v0, alpha) * Math.sin(alpha) - 4;
+    return sweepOffset(t, v0, alpha).y - 4;
   });
 
   return (
@@ -150,14 +151,19 @@ function DotLink({
   );
 }
 
-/** Displacement along a dot's spoke at time t: an envelope that starts
- * and ends at exactly 0 (peak normalized to v0 at t=TAU) multiplied by a
- * fixed-frequency oscillation — the "spiral in, settle at the start"
- * shape, with per-dot phase (via alpha) creating the illusion that a
- * single point is orbiting the arc rather than 4 dots each just
- * wobbling in place. */
+/** A dot's (x, y) offset from its rest anchor at time t. The spoke
+ * direction itself rotates (spokeAngle), while the dot also oscillates
+ * back and forth along that rotating line (r) — the same combination
+ * used in the reference fx/fy hypocycloid animation, where the "2*phase"
+ * term (here, the oscillation) advances twice as fast as the "theta"
+ * term (here, the spoke's own rotation). An envelope that starts and
+ * ends at exactly 0 (peak normalized to v0 at t=TAU) guarantees every
+ * dot always settles back to its exact rest position regardless of how
+ * far the spoke pattern has rotated. */
 function sweepOffset(t: number, v0: number, alpha: number) {
-  if (v0 === 0 || t <= 0) return 0;
+  if (v0 === 0 || t <= 0) return { x: 0, y: 0 };
   const envelope = v0 * (t / TAU) * Math.exp(1 - t / TAU);
-  return envelope * SWING * Math.cos(OMEGA * t - alpha);
+  const spokeAngle = alpha - ROT_RATE * t;
+  const r = envelope * SWING * Math.cos(OMEGA * t - spokeAngle);
+  return { x: r * Math.cos(spokeAngle), y: r * Math.sin(spokeAngle) };
 }
