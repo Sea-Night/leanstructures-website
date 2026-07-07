@@ -275,14 +275,14 @@ header.site-header .logo-structures {
   margin-top: 3px;
 }
 
-header.site-header nav {
+header.site-header nav:not(.mobile-nav-dots) {
   display: flex;
   justify-content: space-between;
   margin-left: auto;
   width: 55%;
 }
 
-header.site-header nav a {
+header.site-header nav:not(.mobile-nav-dots) a {
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 400;
@@ -294,15 +294,63 @@ header.site-header nav a {
   transition: opacity 0.15s ease;
 }
 
-header.site-header nav a:hover,
-header.site-header nav a:focus-visible,
-header.site-header nav a[aria-current='page'] {
+header.site-header nav:not(.mobile-nav-dots) a:hover,
+header.site-header nav:not(.mobile-nav-dots) a:focus-visible,
+header.site-header nav:not(.mobile-nav-dots) a[aria-current='page'] {
   opacity: 1;
 }
 
-header.site-header nav a:focus-visible {
+header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 4px;
+}
+
+/* ---------------- Mobile nav dots (replaces logo/nav below 768px) ---------------- */
+
+header.site-header nav.mobile-nav-dots {
+  display: none;
+  width: 100%;
+  justify-content: center;
+}
+
+.mobile-nav-dots ul {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-nav-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mobile-nav-dot[aria-current='page'] {
+  background: var(--brand);
+  transform: scale(1.35);
+}
+
+.mobile-nav-dot:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+}
+
+@media (max-width: 767px) {
+  header.site-header .logo,
+  header.site-header nav:not(.mobile-nav-dots) {
+    display: none;
+  }
+  header.site-header nav.mobile-nav-dots {
+    display: flex;
+  }
 }
 
 /* ---------------- Buttons / links ---------------- */

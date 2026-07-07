@@ -238,31 +238,6 @@ export default function Home() {
         </RevealOnScroll>
       </section>
 
-      <section className="tint" id="contact">
-        <div className={`wrap ${styles.contactBlock}`}>
-          <RevealOnScroll>
-            <p className="eyebrow">Get in touch</p>
-            <h2>Send us your drawings</h2>
-            <p style={{ marginTop: 20, maxWidth: '50ch', opacity: 0.85 }}>
-              If you have a project you&rsquo;d like us to work on, send us your drawings or details
-              and we&rsquo;ll get back to you. Based in Monmouthshire, we focus on South East Wales and
-              its borders, but work on projects across the UK and overseas.
-            </p>
-          </RevealOnScroll>
-          <RevealOnScroll delay={0.1}>
-            <div className={styles.contactDetail}>
-              <div className={styles.row}>
-                <a href="mailto:info@leanstructures.co.uk">info@leanstructures.co.uk</a>
-              </div>
-              <div className={styles.row}>
-                <a href="tel:+441873903710">01873 903 710</a>
-              </div>
-              <p className={styles.areas}>South East Wales &middot; UK wide &middot; Overseas</p>
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
-
       <Footer />
     </>
   );

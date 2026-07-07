@@ -150,34 +150,3 @@
   opacity: 0.8;
 }
 
-.contactBlock {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: clamp(32px, 6vw, 64px);
-}
-
-@media (max-width: 800px) {
-  .contactBlock {
-    grid-template-columns: 1fr;
-  }
-}
-
-.contactDetail {
-  margin-top: 28px;
-  font-size: 17px;
-}
-
-.contactDetail a {
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
-}
-
-.contactDetail .row {
-  margin-bottom: 10px;
-}
-
-.areas {
-  font-size: 15px;
-  opacity: 0.75;
-  margin-top: 18px;
-}

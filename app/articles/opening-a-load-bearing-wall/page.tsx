@@ -469,7 +469,7 @@ export default function OpeningALoadBearingWallPage() {
               house, the ground and the budget. Based in Monmouthshire, working across South Wales and
               the borders.
             </p>
-            <a className="btn" href="/#contact">
+            <a className="btn" href="/contact">
               Talk to LEAN structures
             </a>
             <a className="ghost" href="/articles">
