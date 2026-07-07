@@ -14,12 +14,12 @@ import {
 import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
-const TAU = 0.5; // decay time constant, s — how long the pulse takes to fade out
-const SPIN_RATE = 6; // rad/s — rate the whole spoke pattern rotates at; the oscillation along each spoke runs at exactly 2x this (see sweepOffset), matching the fx/fy source's own theta vs. 2*phase ratio
-const SWING = 36; // px — max sweep along each dot's spoke; needs real travel distance for the phase offsets between dots to read as rotation rather than a jitter
-const VELOCITY_TO_KICK = 0.002;
-const DEFAULT_KICK = 1.1; // a tap has no swipe velocity, so give it a gentle default pulse
-const MAX_KICK = 1.6; // caps how far even a very fast swipe can push the swing
+const TAU = 0.7; // decay time constant, s — how long the pulse takes to fade out
+const SPIN_RATE = 2.4; // rad/s — rate the whole spoke pattern rotates at; the oscillation along each spoke runs at exactly 2x this (see sweepOffset), matching the fx/fy source's own theta vs. 2*phase ratio. Kept slow and modest — about one lazy rotation over the pulse's visible lifetime — rather than fast, which read as violent jiggling.
+const SWING = 16; // px — max sweep along each dot's spoke, dialed back from an earlier, much larger value that felt erratic
+const VELOCITY_TO_KICK = 0.0012;
+const DEFAULT_KICK = 1; // a tap has no swipe velocity, so give it a gentle default pulse
+const MAX_KICK = 1.3; // caps how far even a very fast swipe can push the swing
 
 // Fixed rest anchors — a shallow arc across the top of the banner. Every
 // dot always returns here exactly; the motion below is a purely
