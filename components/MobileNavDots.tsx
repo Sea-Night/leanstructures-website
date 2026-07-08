@@ -15,7 +15,8 @@ import {
 import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
-const BASE_DURATION = 1.3; // s — how long one full sweep takes at a gentle default kick
+const BASE_DURATION = 2.1; // s — how long one full sweep takes at a gentle default kick; long and heavy, so the sweep carries real momentum rather than snapping to a stop
+const SWEEP_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]; // a much more gradual tail than a plain easeOut — decelerates hard at first, then coasts a long time before fully settling, like something with real mass losing momentum to friction
 const ROTATIONS = 1; // exactly one full cycle of theta, so every point always lands back at its exact start
 const R = 30; // px — the fx/fy formula's own "r"; scales how far each point travels along its line
 const VELOCITY_TO_KICK = 0.0012;
@@ -50,14 +51,41 @@ function lineOffset(theta: number, phaseDeg: number) {
   return { x: fx(theta, phaseDeg) - fx(0, phaseDeg), y: fy(theta, phaseDeg) - fy(0, phaseDeg) };
 }
 
-/** A dot's actual rest position (theta=0), in local coordinates where
- * (0,0) is the shared focal point every line passes through — shifted
- * by -R so the 4 real dots' own average x lands exactly at 0 (see
- * REAL_PHASE_DEG below), which is what lets us center the whole
- * pattern horizontally with a single, exact offset rather than a
- * guess. */
+// 8 phases, 45 degrees apart in the doubled angle the formula actually
+// uses (matching an 8-point pattern), chosen symmetrically around the
+// focal point's vertical axis: the 4 real phases put the nav dots on a
+// shallow arc above the focal point; the 4 decorative phases are their
+// exact mirror image below it, into the page.
+const REAL_PHASE_DEG = [11.25, 33.75, 56.25, 78.75];
+const DECORATIVE_PHASE_DEG = [101.25, 123.75, 146.25, 168.75];
+
+/** A dot's rest position (theta=0) in the formula's own local
+ * coordinates, where (0,0) is the shared focal point every line passes
+ * through. */
+function rawRestPosition(phaseDeg: number) {
+  return { x: fx(0, phaseDeg), y: fy(0, phaseDeg) };
+}
+
+/** The centroid of the 4 real nav dots' own rest positions — the whole
+ * structure (all 8 dots, their lines, and the focal point) is centered
+ * in the banner around THIS point, not around the focal point itself,
+ * so "centered" reflects where the visible/tappable dots actually sit. */
+const REAL_CENTROID = REAL_PHASE_DEG.reduce(
+  (sum, p) => {
+    const pos = rawRestPosition(p);
+    return { x: sum.x + pos.x / REAL_PHASE_DEG.length, y: sum.y + pos.y / REAL_PHASE_DEG.length };
+  },
+  { x: 0, y: 0 }
+);
+
+const HEADER_CENTER_Y = 30; // where the real dots' centroid sits vertically in the banner
+
+/** A dot's rest position shifted so the real dots' own centroid lands
+ * exactly at (0,0) — i.e. at (50vw, HEADER_CENTER_Y) once placed on
+ * screen. */
 function restPosition(phaseDeg: number) {
-  return { x: fx(0, phaseDeg) - R, y: fy(0, phaseDeg) };
+  const raw = rawRestPosition(phaseDeg);
+  return { x: raw.x - REAL_CENTROID.x, y: raw.y - REAL_CENTROID.y };
 }
 
 /** The straight line a given phase actually travels along, as theta
@@ -79,19 +107,6 @@ function pathLine(phaseDeg: number) {
   const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
   return { center, length, angleDeg };
 }
-
-// 8 phases, 45 degrees apart in the doubled angle the formula actually
-// uses (matching an 8-point pattern), chosen symmetrically around the
-// focal point's vertical axis: the 4 real phases put the nav dots on a
-// shallow arc above the focal point (real position averages to exactly
-// (0, mean-y) in local coordinates, letting us center them with one
-// clean shift rather than picking arbitrary rest points that would
-// break the shared-origin property, which is what happened before);
-// the 4 decorative phases are their exact mirror image below the focal
-// point, into the page.
-const REAL_PHASE_DEG = [11.25, 33.75, 56.25, 78.75];
-const DECORATIVE_PHASE_DEG = [101.25, 123.75, 146.25, 168.75];
-const CENTER_Y = 30;
 
 /** "calc(50vw + 12px)" / "calc(50vw - 12px)" — never "+ -12px", which
  * some CSS parsers choke on. */
@@ -142,7 +157,7 @@ export function MobileNavDots() {
     theta.set(0);
     animate(theta, direction * 2 * Math.PI * ROTATIONS, {
       duration,
-      ease: 'easeOut',
+      ease: SWEEP_EASE,
       onComplete: () => theta.set(0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,7 +193,7 @@ function PathLine({ phase }: { phase: number }) {
       style={{
         position: 'absolute',
         left: centeredLeft(center.x),
-        top: CENTER_Y + center.y,
+        top: HEADER_CENTER_Y + center.y,
         width: length,
         height: 1,
         background: '#000',
@@ -207,7 +222,7 @@ function DotLink({
   const y = useTransform(theta, (t) => lineOffset(t, phase).y - 4);
 
   return (
-    <li className="mobile-nav-dot-slot" style={{ left: centeredLeft(rest.x), top: CENTER_Y + rest.y }}>
+    <li className="mobile-nav-dot-slot" style={{ left: centeredLeft(rest.x), top: HEADER_CENTER_Y + rest.y }}>
       <motion.div style={{ x, y }}>
         <Link
           href={page.href}
@@ -240,7 +255,7 @@ function BloomDot({
   const opacity = useTransform(thetaVelocity, (v) => Math.max(0.6, Math.min(0.85, Math.abs(v) / 6)));
 
   return (
-    <li className="mobile-nav-dot-slot" aria-hidden="true" style={{ left: centeredLeft(rest.x), top: CENTER_Y + rest.y }}>
+    <li className="mobile-nav-dot-slot" aria-hidden="true" style={{ left: centeredLeft(rest.x), top: HEADER_CENTER_Y + rest.y }}>
       <motion.div style={{ x, y, opacity }} className="mobile-nav-bloom-dot" />
     </li>
   );
