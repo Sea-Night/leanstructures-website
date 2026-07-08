@@ -49,6 +49,24 @@ function lineOffset(theta: number, phaseDeg: number) {
   return { x: fx(theta, phaseDeg) - fx(0, phaseDeg), y: fy(theta, phaseDeg) - fy(0, phaseDeg) };
 }
 
+/** The straight line a given phase actually travels along, as theta
+ * ranges over all reals: a fixed unit direction (half the phase angle)
+ * and a signed extent along it of exactly 4R end to end — used here to
+ * draw each dot's real, computed path (not a guess) as a static line,
+ * for directly confirming the motion is genuinely linear. */
+function pathLine(phaseDeg: number, rest: { x: number; y: number }) {
+  const halfPhi = (phaseDeg * Math.PI) / 180;
+  const dir = { x: Math.cos(halfPhi), y: -Math.sin(halfPhi) };
+  const minScalar = 2 * R * (-1 - Math.cos(halfPhi));
+  const maxScalar = 2 * R * (1 - Math.cos(halfPhi));
+  const p1 = { x: rest.x + minScalar * dir.x, y: rest.y + minScalar * dir.y };
+  const p2 = { x: rest.x + maxScalar * dir.x, y: rest.y + maxScalar * dir.y };
+  const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  const length = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+  const angleDeg = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+  return { center, length, angleDeg };
+}
+
 // 8 phases spaced 22.5 degrees apart (so the doubled angle inside fx/fy
 // is spaced 45 degrees apart, matching an 8-point pattern) — the 4 real
 // nav dots take the even-indexed phases, the 4 decorative points the
@@ -67,6 +85,7 @@ const REST_OFFSETS = [
   { x: 14, y: -3 },
   { x: 42, y: 9 },
 ];
+const CENTER_OFFSET = { x: 0, y: 0 };
 
 /** "calc(50vw + 12px)" / "calc(50vw - 12px)" — never "+ -12px", which
  * some CSS parsers choke on. */
@@ -75,26 +94,24 @@ function centeredLeft(offsetPx: number) {
   return `calc(50vw ${sign} ${Math.abs(offsetPx)}px)`;
 }
 
-/** Mobile-only replacement for the header's logo/nav: 4 dots on a
- * shallow arc centered in the banner. Every swipe or tap drives a
- * single decelerating sweep of a shared "theta" parameter through
- * exactly one full cycle (fast at first, easing to a stop, like
- * something given a push and losing momentum to friction) — not a
- * back-and-forth oscillation, which can never complete a full cycle by
- * construction. Each dot's own motion is a straight line (the fx/fy
- * Cardano-circle formula above): its direction never changes, only its
- * position along that one fixed line does. 4 decorative points, sharing
- * the same theta but different phases, move along their own lines too
- * and fade in/out with how fast theta is currently changing — the
- * combined, correlated motion of all 8 is what reads as a circular
- * pattern, even though no individual point ever moves along a curve.
- * Every point always lands back exactly where it started. The sweep's
- * duration comes from the swipe's real velocity; a plain tap gets a
- * gentle default pace. Rendered as a position:fixed overlay mounted in
- * app/layout.tsx (outside PageTransition's animated wrapper — that
- * wrapper applies a CSS transform mid-slide, which would otherwise
- * re-anchor any fixed-position descendant to itself instead of the
- * viewport). */
+/** Mobile-only replacement for the header's logo/nav: 8 dots (4 real nav
+ * links, 4 decorative) on a shallow arc centered in the banner, each
+ * with its exact computed straight-line path drawn as a black line, so
+ * the underlying motion is directly checkable rather than taken on
+ * faith. Every swipe or tap drives a single decelerating sweep of a
+ * shared "theta" parameter through exactly one full cycle (fast at
+ * first, easing to a stop) — not a back-and-forth oscillation, which
+ * can never complete a full cycle by construction. Each dot's own
+ * motion is a straight line (the fx/fy Cardano-circle formula above):
+ * its direction never changes, only its position along that one fixed
+ * line does. It's the correlated timing across the 8 different
+ * phases/lines, not any single point's own path, that makes the
+ * ensemble read as a circular pattern to a viewer. Every point always
+ * lands back exactly where it started. Rendered as a position:fixed
+ * overlay mounted in app/layout.tsx (outside PageTransition's animated
+ * wrapper — that wrapper applies a CSS transform mid-slide, which would
+ * otherwise re-anchor any fixed-position descendant to itself instead
+ * of the viewport). */
 export function MobileNavDots() {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
@@ -126,6 +143,12 @@ export function MobileNavDots() {
 
   return (
     <nav aria-label="Page navigation" className="mobile-nav-dots">
+      {REAL_PHASE_DEG.map((phase, i) => (
+        <PathLine key={`real-line-${i}`} phase={phase} rest={REST_OFFSETS[i]} />
+      ))}
+      {DECORATIVE_PHASE_DEG.map((phase, i) => (
+        <PathLine key={`bloom-line-${i}`} phase={phase} rest={CENTER_OFFSET} />
+      ))}
       <ul>
         {DECORATIVE_PHASE_DEG.map((phase, i) => (
           <BloomDot key={`bloom-${i}`} phase={phase} theta={theta} thetaVelocity={thetaVelocity} />
@@ -135,6 +158,27 @@ export function MobileNavDots() {
         ))}
       </ul>
     </nav>
+  );
+}
+
+/** The static, exactly-computed straight line a dot travels along
+ * (never animated — it's the same regardless of theta). */
+function PathLine({ phase, rest }: { phase: number; rest: { x: number; y: number } }) {
+  const { center, length, angleDeg } = pathLine(phase, rest);
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        left: centeredLeft(center.x),
+        top: CENTER_Y + center.y,
+        width: length,
+        height: 1,
+        background: '#000',
+        transform: `translate(-50%, -50%) rotate(${angleDeg}deg)`,
+        pointerEvents: 'none',
+      }}
+    />
   );
 }
 
@@ -169,10 +213,10 @@ function DotLink({
   );
 }
 
-/** A purely decorative point (no link, no tab stop), resting invisibly
- * at the shared center and moving along its own fixed line — same
- * mechanism as the real dots — fading in only while theta is actively
- * changing fast. */
+/** A decorative point (no link, no tab stop) at the shared center,
+ * moving along its own fixed line — same mechanism as the real dots.
+ * Always visible (not just during motion) so its path is checkable at
+ * rest too. */
 function BloomDot({
   phase,
   theta,
@@ -184,7 +228,7 @@ function BloomDot({
 }) {
   const x = useTransform(theta, (t) => lineOffset(t, phase).x - 3);
   const y = useTransform(theta, (t) => lineOffset(t, phase).y - 3);
-  const opacity = useTransform(thetaVelocity, (v) => Math.min(0.85, Math.abs(v) / 6));
+  const opacity = useTransform(thetaVelocity, (v) => Math.max(0.6, Math.min(0.85, Math.abs(v) / 6)));
 
   return (
     <li className="mobile-nav-dot-slot" aria-hidden="true" style={{ left: centeredLeft(0), top: CENTER_Y }}>
