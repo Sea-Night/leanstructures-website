@@ -6,56 +6,58 @@ import { usePathname } from 'next/navigation';
 import {
   motion,
   useMotionValue,
+  useVelocity,
   useTransform,
-  useAnimationFrame,
+  animate,
   useReducedMotion,
   type MotionValue,
 } from 'motion/react';
 import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
-const TAU = 0.6; // decay time constant, s — how long the pulse takes to fade out
-const SPIN_RATE = 5; // rad/s — how fast the shared rotation angle oscillates before settling
-const ANGLE_KICK = 0.7; // rad — max additional angular swing at full kick strength
-const DECORATIVE_PEAK = 22; // px — how far the bloom points reach out from the center at full kick strength
+const BASE_DURATION = 1.3; // s — how long one full rotation takes at a gentle default kick
+const ROTATIONS = 1; // exactly one full turn, so the wheel always lands back at its exact start
+const R = 34; // px — fixed radius of every point from the shared center; big enough to clearly break out past the header's own boundary during the spin
 const VELOCITY_TO_KICK = 0.0012;
 const DEFAULT_KICK = 1; // a tap has no swipe velocity, so give it a gentle default pulse
-const MAX_KICK = 1.3; // caps how far even a very fast swipe can push things
+const MAX_KICK = 1.3; // caps how fast even a very fast swipe can spin things
 
 // The rest arc IS 4 vertices of a regular 8-point wheel (45 degrees
-// apart) centered on CENTER, radius R — not 4 arbitrary points that
-// happen to sit near a center. The pulse rotates that whole wheel
-// rigidly (every point keeps its exact 45-degree spacing from its
-// neighbors at all times — nothing changes radius except the 4
-// decorative points, which bloom out from 0 and back), rather than each
-// point independently sweeping back and forth at its own pace. The 4
-// real nav dots occupy the upper 4 vertices (a shallow arc across the
-// banner); the 4 decorative ones sit at the mirrored lower 4 vertices,
-// invisible (radius 0) at rest, and bloom outward — below the banner,
-// into the page — as the wheel spins.
-const CENTER = { x: 195, y: 26 };
-const R = 28; // real dots' fixed radius from center
+// apart, fixed radius R), centered horizontally in the banner. A pulse
+// rigidly rotates the whole wheel — a single decelerating spin of
+// exactly one full turn (not a back-and-forth oscillation, which never
+// read as real rotation no matter how large) — so every point keeps its
+// exact 45-degree spacing from its neighbors at all times, and always
+// lands back exactly on its own starting vertex. The 4 real nav dots
+// occupy the upper 4 vertices; the 4 mirrored lower vertices are
+// decorative points, always present in the wheel but faded to invisible
+// at rest, brightening while the wheel is spinning fast and fading again
+// as it slows to a stop.
+const CENTER_Y = 25; // vertically centered in the ~50px mobile header
 const REAL_ANGLES = [-Math.PI * (7 / 8), -Math.PI * (5 / 8), -Math.PI * (3 / 8), -Math.PI * (1 / 8)];
 const DECORATIVE_ANGLES = [Math.PI * (1 / 8), Math.PI * (3 / 8), Math.PI * (5 / 8), Math.PI * (7 / 8)];
 
-function polar(center: { x: number; y: number }, radius: number, angle: number) {
-  return { x: center.x + radius * Math.cos(angle), y: center.y + radius * Math.sin(angle) };
+/** "calc(50vw + 12px)" / "calc(50vw - 12px)" — never "+ -12px", which
+ * some CSS parsers choke on. */
+function centeredLeft(offsetPx: number) {
+  const sign = offsetPx < 0 ? '-' : '+';
+  return `calc(50vw ${sign} ${Math.abs(offsetPx)}px)`;
 }
 
-const REST = REAL_ANGLES.map((a) => polar(CENTER, R, a));
-
 /** Mobile-only replacement for the header's logo/nav: 4 dots forming the
- * upper half of an 8-point wheel centered just below the banner. Every
- * swipe or tap triggers a decaying pulse that rigidly rotates the whole
- * wheel back and forth (so every dot keeps its exact 45-degree spacing
- * from its neighbors throughout — this is a real, literal spin, not an
- * emergent illusion from independently-timed points) while the 4
- * mirrored decorative points at the lower vertices bloom outward from
- * the center and back — then everything settles exactly back to rest.
- * The pulse's initial strength comes from the swipe's real velocity; a
- * plain tap gets a gentle default. Rendered as a position:fixed overlay
- * mounted in app/layout.tsx (outside PageTransition's animated wrapper —
- * that wrapper applies a CSS transform mid-slide, which would otherwise
+ * upper half of an 8-point wheel centered in the banner. Every swipe or
+ * tap spins the whole wheel rigidly through exactly one full turn — a
+ * single decelerating sweep (fast at first, easing to a stop, like a
+ * wheel given a push and losing momentum to friction), not a back-and-
+ * forth wobble — so it reads as a real, continuous spin rather than a
+ * jiggle, while always landing every dot back on its own exact starting
+ * position. The mirrored lower 4 vertices are decorative points, always
+ * part of the same rigid wheel but only visible while it's spinning
+ * fast. The spin's duration comes from the swipe's real velocity (a
+ * faster swipe completes its one turn quicker); a plain tap gets a
+ * gentle default pace. Rendered as a position:fixed overlay mounted in
+ * app/layout.tsx (outside PageTransition's animated wrapper — that
+ * wrapper applies a CSS transform mid-slide, which would otherwise
  * re-anchor any fixed-position descendant to itself instead of the
  * viewport). */
 export function MobileNavDots() {
@@ -64,55 +66,37 @@ export function MobileNavDots() {
   const activeIndex = navIndexForPathname(pathname);
   const prevPathnameRef = useRef(pathname);
 
-  const elapsed = useMotionValue(0); // seconds since the current/last pulse began
-  const kick = useMotionValue(0); // this pulse's strength (V0)
-  const navStartRef = useRef<number | null>(null);
+  const theta = useMotionValue(0); // shared wheel rotation, radians
+  const thetaVelocity = useVelocity(theta);
 
   useEffect(() => {
     if (pathname === prevPathnameRef.current) return;
     prevPathnameRef.current = pathname;
-
-    if (prefersReducedMotion) {
-      kick.set(0);
-      navStartRef.current = null;
-      return;
-    }
+    if (prefersReducedMotion) return;
 
     const swipeVelocity = consumeLastSwipeVelocity();
     const v0 =
       swipeVelocity !== 0 ? Math.min(Math.abs(swipeVelocity) * VELOCITY_TO_KICK, MAX_KICK) : DEFAULT_KICK;
-    kick.set(v0);
-    navStartRef.current = performance.now();
-    elapsed.set(0);
+    const direction = swipeVelocity !== 0 ? -Math.sign(swipeVelocity) : 1;
+    const duration = BASE_DURATION / v0;
+
+    theta.set(0);
+    animate(theta, direction * 2 * Math.PI * ROTATIONS, {
+      duration,
+      ease: 'easeOut',
+      onComplete: () => theta.set(0),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
-
-  useAnimationFrame(() => {
-    if (navStartRef.current === null) return;
-    const t = (performance.now() - navStartRef.current) / 1000;
-    if (t > TAU * 6) {
-      navStartRef.current = null;
-      elapsed.set(0);
-      return;
-    }
-    elapsed.set(t);
-  });
 
   return (
     <nav aria-label="Page navigation" className="mobile-nav-dots">
       <ul>
         {DECORATIVE_ANGLES.map((angle, i) => (
-          <BloomDot key={`bloom-${i}`} angle={angle} elapsed={elapsed} kick={kick} />
+          <BloomDot key={`bloom-${i}`} angle={angle} theta={theta} thetaVelocity={thetaVelocity} />
         ))}
         {NAV_PAGES.map((page, index) => (
-          <DotLink
-            key={page.href}
-            page={page}
-            index={index}
-            isActive={index === activeIndex}
-            elapsed={elapsed}
-            kick={kick}
-          />
+          <DotLink key={page.href} page={page} index={index} isActive={index === activeIndex} theta={theta} />
         ))}
       </ul>
     </nav>
@@ -123,29 +107,23 @@ function DotLink({
   page,
   index,
   isActive,
-  elapsed,
-  kick,
+  theta,
 }: {
   page: NavPage;
   index: number;
   isActive: boolean;
-  elapsed: MotionValue<number>;
-  kick: MotionValue<number>;
+  theta: MotionValue<number>;
 }) {
   const angle = REAL_ANGLES[index];
-  const rest = REST[index];
 
-  const x = useTransform([elapsed, kick], (latest) => {
-    const [t, v0] = latest as [number, number];
-    return wheelPosition(t, v0, angle).x - rest.x - 4;
-  });
-  const y = useTransform([elapsed, kick], (latest) => {
-    const [t, v0] = latest as [number, number];
-    return wheelPosition(t, v0, angle).y - rest.y - 4;
-  });
+  const x = useTransform(theta, (t) => R * (Math.cos(angle + t) - Math.cos(angle)) - 4);
+  const y = useTransform(theta, (t) => R * (Math.sin(angle + t) - Math.sin(angle)) - 4);
 
   return (
-    <li className="mobile-nav-dot-slot" style={{ left: rest.x, top: rest.y }}>
+    <li
+      className="mobile-nav-dot-slot"
+      style={{ left: centeredLeft(R * Math.cos(angle)), top: CENTER_Y + R * Math.sin(angle) }}
+    >
       <motion.div style={{ x, y }}>
         <Link
           href={page.href}
@@ -158,61 +136,29 @@ function DotLink({
   );
 }
 
-/** A purely decorative point (no link, no tab stop) at one of the
- * mirrored lower vertices — invisible at rest (radius 0), blooming
- * outward as the wheel spins and back to invisible as it settles. */
+/** A purely decorative point (no link, no tab stop) — permanently part
+ * of the rigid wheel at the same fixed radius as the real dots, just
+ * faded to invisible except while the wheel is actively spinning fast. */
 function BloomDot({
   angle,
-  elapsed,
-  kick,
+  theta,
+  thetaVelocity,
 }: {
   angle: number;
-  elapsed: MotionValue<number>;
-  kick: MotionValue<number>;
+  theta: MotionValue<number>;
+  thetaVelocity: MotionValue<number>;
 }) {
-  const x = useTransform([elapsed, kick], (latest) => {
-    const [t, v0] = latest as [number, number];
-    const r = bloomRadius(t, v0);
-    const spun = angle + wheelAngle(t, v0);
-    return r * Math.cos(spun) - 3;
-  });
-  const y = useTransform([elapsed, kick], (latest) => {
-    const [t, v0] = latest as [number, number];
-    const r = bloomRadius(t, v0);
-    const spun = angle + wheelAngle(t, v0);
-    return r * Math.sin(spun) - 3;
-  });
-  const opacity = useTransform([elapsed, kick], (latest) => {
-    const [t, v0] = latest as [number, number];
-    return Math.min(0.85, bloomRadius(t, v0) / DECORATIVE_PEAK);
-  });
+  const x = useTransform(theta, (t) => R * (Math.cos(angle + t) - Math.cos(angle)) - 4);
+  const y = useTransform(theta, (t) => R * (Math.sin(angle + t) - Math.sin(angle)) - 4);
+  const opacity = useTransform(thetaVelocity, (v) => Math.min(0.85, Math.abs(v) / 6));
 
   return (
-    <li className="mobile-nav-dot-slot" aria-hidden="true" style={{ left: CENTER.x, top: CENTER.y }}>
+    <li
+      className="mobile-nav-dot-slot"
+      aria-hidden="true"
+      style={{ left: centeredLeft(R * Math.cos(angle)), top: CENTER_Y + R * Math.sin(angle) }}
+    >
       <motion.div style={{ x, y, opacity }} className="mobile-nav-bloom-dot" />
     </li>
   );
-}
-
-/** The whole wheel's shared rotation offset: starts and ends at exactly
- * 0 (an impulse response — a decaying sinusoid seeded with real angular
- * velocity at t=0, proportional to the swipe's speed), so every point's
- * spacing relative to its neighbors is preserved throughout, and the
- * pattern always spins back to its exact rest orientation. */
-function wheelAngle(t: number, v0: number) {
-  if (v0 === 0 || t <= 0) return 0;
-  return v0 * ANGLE_KICK * Math.exp(-t / TAU) * Math.sin(SPIN_RATE * t);
-}
-
-/** A real dot's absolute position: fixed radius R from CENTER, at its
- * own vertex angle plus the shared wheel rotation — a literal circular
- * arc around a fixed point, not an independent oscillation. */
-function wheelPosition(t: number, v0: number, angle: number) {
-  return polar(CENTER, R, angle + wheelAngle(t, v0));
-}
-
-/** 0 -> peak -> 0, peaking at t=TAU. */
-function bloomRadius(t: number, v0: number) {
-  if (v0 === 0 || t <= 0) return 0;
-  return DECORATIVE_PEAK * (t / TAU) * Math.exp(1 - t / TAU);
 }
