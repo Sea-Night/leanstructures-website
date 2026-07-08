@@ -16,7 +16,7 @@ import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const BASE_DURATION = 2.1; // s — how long one full sweep takes at a gentle default kick; long and heavy, so the sweep carries real momentum rather than snapping to a stop
-const SWEEP_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]; // a much more gradual tail than a plain easeOut — decelerates hard at first, then coasts a long time before fully settling, like something with real mass losing momentum to friction
+const SWEEP_EASE: [number, number, number, number] = [0.45, 0.05, 0.55, 0.95]; // a smooth, symmetric ease-in-out — gentle ramp up, gentle ramp down, no sudden snap at either end (an earlier expo-style curve rose almost instantly then crawled for a long tail, which read as a jarring burst followed by dragging deceleration)
 const ROTATIONS = 2; // at least 2 full cycles of theta — still always lands back at its exact start, since any whole number of cycles does
 const R = 30; // px — the fx/fy formula's own "r"; scales how far each point travels along its line
 const VELOCITY_TO_KICK = 0.0012;
