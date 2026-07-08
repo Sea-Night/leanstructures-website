@@ -16,9 +16,9 @@ import { NAV_PAGES, navIndexForPathname, type NavPage } from '@/lib/site-nav';
 import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const BASE_DURATION = 2.1; // s — how long one full sweep takes at a gentle default kick; long and heavy, so the sweep carries real momentum rather than snapping to a stop
-const SWEEP_EASE: [number, number, number, number] = [0.45, 0.05, 0.55, 0.95]; // a smooth, symmetric ease-in-out — gentle ramp up, gentle ramp down, no sudden snap at either end (an earlier expo-style curve rose almost instantly then crawled for a long tail, which read as a jarring burst followed by dragging deceleration)
+const INERTIA_DECAY = 4.2; // how quickly the "friction" eats the initial velocity — see inertiaEase below
 const ROTATIONS = 2; // at least 2 full cycles of theta — still always lands back at its exact start, since any whole number of cycles does
-const R = 30; // px — the fx/fy formula's own "r"; scales how far each point travels along its line
+const R = 33; // px — the fx/fy formula's own "r"; scales how far each point travels along its line (10% up from 30)
 const VELOCITY_TO_KICK = 0.0012;
 const DEFAULT_KICK = 1; // a tap has no swipe velocity, so give it a gentle default pulse
 const MAX_KICK = 1.3; // caps how fast even a very fast swipe can drive things
@@ -51,6 +51,20 @@ function lineOffset(theta: number, phaseDeg: number) {
   return { x: fx(theta, phaseDeg) - fx(0, phaseDeg), y: fy(theta, phaseDeg) - fy(0, phaseDeg) };
 }
 
+/** The actual shape of something heavy given a shove and left to
+ * friction: velocity is highest the instant it's released and decays
+ * exponentially from there (v(t) = v0*e^-kt) — not a designed "ease"
+ * curve. Integrating that velocity gives position p(t) proportional to
+ * (1 - e^-kt), which is what this returns, normalized so it still hits
+ * exactly 0 at t=0 and exactly 1 at t=1 (so Framer's fixed-duration
+ * tween lands on the exact target every time, unlike a true unbounded
+ * physics sim). A plain symmetric ease-in-out (tried previously) has a
+ * deliberate, designed ramp-up that a real shove doesn't have — the
+ * object is moving fastest at the moment of the push, full stop. */
+function inertiaEase(t: number) {
+  return (1 - Math.exp(-INERTIA_DECAY * t)) / (1 - Math.exp(-INERTIA_DECAY));
+}
+
 // 8 phases, 45 degrees apart in the doubled angle the formula actually
 // uses (matching an 8-point pattern), chosen symmetrically around the
 // focal point's vertical axis: the 4 real phases put the nav dots on a
@@ -66,21 +80,27 @@ function rawRestPosition(phaseDeg: number) {
   return { x: fx(0, phaseDeg), y: fy(0, phaseDeg) };
 }
 
-/** Every rest position (real and decorative alike) lies exactly on one
- * circle of radius R — a quarter of each dot's own 4R travel distance —
- * centered at local (R, 0), a quarter-travel to one side of the focal
- * point. That circle's center, not the focal point and not an average
- * of the real dots alone, is what the whole structure is centered on. */
-const CIRCLE_CENTER = { x: R, y: 0 };
+/** The centroid of the 4 real nav dots' own rest positions — the whole
+ * structure (all 8 dots, their lines, and the focal point) is centered
+ * in the banner around THIS point, not around the geometric circle all
+ * 8 rest positions happen to lie on, so "centered" reflects where the
+ * visible/tappable dots actually sit. */
+const REAL_CENTROID = REAL_PHASE_DEG.reduce(
+  (sum, p) => {
+    const pos = rawRestPosition(p);
+    return { x: sum.x + pos.x / REAL_PHASE_DEG.length, y: sum.y + pos.y / REAL_PHASE_DEG.length };
+  },
+  { x: 0, y: 0 }
+);
 
-const HEADER_CENTER_Y = 30; // where the apparent circle's center sits vertically in the banner
+const HEADER_CENTER_Y = 30; // where the real dots' centroid sits vertically in the banner
 
-/** A dot's rest position shifted so the apparent circle's own center
- * lands exactly at (0,0) — i.e. at (50vw, HEADER_CENTER_Y) once placed
- * on screen. */
+/** A dot's rest position shifted so the real dots' own centroid lands
+ * exactly at (0,0) — i.e. at (50vw, HEADER_CENTER_Y) once placed on
+ * screen. */
 function restPosition(phaseDeg: number) {
   const raw = rawRestPosition(phaseDeg);
-  return { x: raw.x - CIRCLE_CENTER.x, y: raw.y - CIRCLE_CENTER.y };
+  return { x: raw.x - REAL_CENTROID.x, y: raw.y - REAL_CENTROID.y };
 }
 
 /** The straight line a given phase actually travels along, as theta
@@ -152,7 +172,7 @@ export function MobileNavDots() {
     theta.set(0);
     animate(theta, direction * 2 * Math.PI * ROTATIONS, {
       duration,
-      ease: SWEEP_EASE,
+      ease: inertiaEase,
       onComplete: () => theta.set(0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
