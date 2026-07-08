@@ -17,7 +17,7 @@ import { consumeLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const BASE_DURATION = 2.1; // s — how long one full sweep takes at a gentle default kick; long and heavy, so the sweep carries real momentum rather than snapping to a stop
 const SWEEP_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]; // a much more gradual tail than a plain easeOut — decelerates hard at first, then coasts a long time before fully settling, like something with real mass losing momentum to friction
-const ROTATIONS = 1; // exactly one full cycle of theta, so every point always lands back at its exact start
+const ROTATIONS = 2; // at least 2 full cycles of theta — still always lands back at its exact start, since any whole number of cycles does
 const R = 30; // px — the fx/fy formula's own "r"; scales how far each point travels along its line
 const VELOCITY_TO_KICK = 0.0012;
 const DEFAULT_KICK = 1; // a tap has no swipe velocity, so give it a gentle default pulse
@@ -66,26 +66,21 @@ function rawRestPosition(phaseDeg: number) {
   return { x: fx(0, phaseDeg), y: fy(0, phaseDeg) };
 }
 
-/** The centroid of the 4 real nav dots' own rest positions — the whole
- * structure (all 8 dots, their lines, and the focal point) is centered
- * in the banner around THIS point, not around the focal point itself,
- * so "centered" reflects where the visible/tappable dots actually sit. */
-const REAL_CENTROID = REAL_PHASE_DEG.reduce(
-  (sum, p) => {
-    const pos = rawRestPosition(p);
-    return { x: sum.x + pos.x / REAL_PHASE_DEG.length, y: sum.y + pos.y / REAL_PHASE_DEG.length };
-  },
-  { x: 0, y: 0 }
-);
+/** Every rest position (real and decorative alike) lies exactly on one
+ * circle of radius R — a quarter of each dot's own 4R travel distance —
+ * centered at local (R, 0), a quarter-travel to one side of the focal
+ * point. That circle's center, not the focal point and not an average
+ * of the real dots alone, is what the whole structure is centered on. */
+const CIRCLE_CENTER = { x: R, y: 0 };
 
-const HEADER_CENTER_Y = 30; // where the real dots' centroid sits vertically in the banner
+const HEADER_CENTER_Y = 30; // where the apparent circle's center sits vertically in the banner
 
-/** A dot's rest position shifted so the real dots' own centroid lands
- * exactly at (0,0) — i.e. at (50vw, HEADER_CENTER_Y) once placed on
- * screen. */
+/** A dot's rest position shifted so the apparent circle's own center
+ * lands exactly at (0,0) — i.e. at (50vw, HEADER_CENTER_Y) once placed
+ * on screen. */
 function restPosition(phaseDeg: number) {
   const raw = rawRestPosition(phaseDeg);
-  return { x: raw.x - REAL_CENTROID.x, y: raw.y - REAL_CENTROID.y };
+  return { x: raw.x - CIRCLE_CENTER.x, y: raw.y - CIRCLE_CENTER.y };
 }
 
 /** The straight line a given phase actually travels along, as theta
