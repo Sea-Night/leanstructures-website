@@ -347,15 +347,6 @@ header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
   outline-offset: 4px;
 }
 
-.mobile-nav-bloom-dot {
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--brand);
-  pointer-events: none;
-}
-
 @media (max-width: 767px) {
   header.site-header nav:not(.mobile-nav-dots) {
     display: none;
