@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { MobileNavLetters } from '@/components/MobileNavLetters';
 
 /** Rendered once in app/layout.tsx (outside the per-page transitioning
  * tree) so it never remounts on navigation — it derives everything it
@@ -31,6 +32,7 @@ export function Header() {
           Contact
         </Link>
       </nav>
+      <MobileNavLetters />
     </header>
   );
 }

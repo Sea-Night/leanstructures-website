@@ -275,14 +275,14 @@ header.site-header .logo-structures {
   margin-top: 3px;
 }
 
-header.site-header nav:not(.mobile-nav-dots) {
+header.site-header nav:not(.mobile-nav-letters) {
   display: flex;
   justify-content: space-between;
   margin-left: auto;
   width: 55%;
 }
 
-header.site-header nav:not(.mobile-nav-dots) a {
+header.site-header nav:not(.mobile-nav-letters) a {
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 400;
@@ -294,61 +294,45 @@ header.site-header nav:not(.mobile-nav-dots) a {
   transition: opacity 0.15s ease;
 }
 
-header.site-header nav:not(.mobile-nav-dots) a:hover,
-header.site-header nav:not(.mobile-nav-dots) a:focus-visible,
-header.site-header nav:not(.mobile-nav-dots) a[aria-current='page'] {
+header.site-header nav:not(.mobile-nav-letters) a:hover,
+header.site-header nav:not(.mobile-nav-letters) a:focus-visible,
+header.site-header nav:not(.mobile-nav-letters) a[aria-current='page'] {
   opacity: 1;
 }
 
-header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
+header.site-header nav:not(.mobile-nav-letters) a:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 4px;
 }
 
-/* ---------------- Mobile nav dots (replaces text nav below 768px; logo
-   stays but shrinks) — rendered outside header.site-header (mounted in
-   app/layout.tsx as a fixed viewport overlay, not a header descendant),
-   so these selectors are unscoped from `header.site-header`. ---------------- */
+/* ---------------- Mobile nav letters (replaces text nav below 768px;
+   logo stays but shrinks) ---------------- */
 
-.mobile-nav-dots {
+.mobile-nav-letters {
   display: none;
 }
 
-.mobile-nav-dots ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.mobile-nav-letter {
+  font-family: var(--font-eng-mono);
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--ink);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 }
 
-.mobile-nav-dot-slot {
-  position: absolute;
-  pointer-events: none;
+.mobile-nav-letter[aria-current='page'] {
+  opacity: 1;
 }
 
-.mobile-nav-dot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 25%, transparent);
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-  pointer-events: auto;
-}
-
-.mobile-nav-dot[aria-current='page'] {
-  background: var(--brand);
-  transform: scale(1.35);
-}
-
-.mobile-nav-dot:focus-visible {
+.mobile-nav-letter:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 4px;
 }
 
 @media (max-width: 767px) {
-  header.site-header nav:not(.mobile-nav-dots) {
+  header.site-header nav:not(.mobile-nav-letters) {
     display: none;
   }
   header.site-header .logo-lean {
@@ -358,12 +342,11 @@ header.site-header nav:not(.mobile-nav-dots) a:focus-visible {
     font-size: 9px;
     margin-top: 2px;
   }
-  .mobile-nav-dots {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    pointer-events: none;
+  .mobile-nav-letters {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-left: auto;
   }
 }
 

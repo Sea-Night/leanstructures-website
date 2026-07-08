@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, type PanInfo } from 'motion/react';
 import { NAV_PAGES, navIndexForPathname, isTopLevelNavPath } from '@/lib/site-nav';
 import { useIsMobile } from '@/components/use-is-mobile';
-import { setLastSwipeVelocity } from '@/lib/nav-gesture';
 
 const SWIPE_THRESHOLD = 60;
 
@@ -39,7 +38,6 @@ export function PageSwipeNav({ children }: { children: ReactNode }) {
     const idx = navIndexForPathname(pathname);
     const len = NAV_PAGES.length;
     navigatingRef.current = true;
-    setLastSwipeVelocity(info.velocity.x);
     if (info.offset.x < 0) {
       router.push(NAV_PAGES[(idx + 1) % len].href);
     } else {
