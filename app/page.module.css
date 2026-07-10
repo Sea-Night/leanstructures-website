@@ -88,6 +88,7 @@
   line-height: 1.25;
   max-width: 18ch;
   text-align: left;
+  hyphens: none;
 }
 
 .statement .accent {
